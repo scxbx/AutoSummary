@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 
-#TEST GIT
+# TEST GIT
 
 # 读取"确认表"，创建列表
 # ·字典内分别设置 编号、联系电话、家庭住址、家庭成员
@@ -276,9 +276,14 @@ def GUI():
         global info, errors
         info, errors = read_data(fileName_input)
 
+        if len(errors) == 0:
+            text1.insert("end", "\n\n没有发现错误。\n ")
+            return
+
         text1.insert("end", "\n\n疑似有误的信息如下所示：\n")
         for error in errors:
             text1.insert("end", "\n{}".format(error))
+
 
     def open_output():
         global fileName_output
