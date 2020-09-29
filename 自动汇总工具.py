@@ -1,5 +1,5 @@
 import xlrd, xlwt
-from xlutils.copy import copy
+# from xlutils.copy import copy
 import re
 import tkinter as tk
 from tkinter import filedialog
@@ -30,7 +30,7 @@ def read_data(filename):
         if (type(id_strs) == float):
             id_strs = str(int(id_strs))
         # if there exist a '/' in id, replace '/' with '-'
-        id_strs = id_strs.replace('/', '-', 1);
+        id_strs = id_strs.replace('/', '-', 1)
         id = id_strs.split("-", 1)[0]
         master = sheet.cell(2, 2).value
         Phone_number = sheet.cell(2, 7).value
@@ -507,6 +507,7 @@ def reorder(filename):
     print(sheet.ncols)
     print("sheet.nrows: ", sheet.nrows)
     row_now = 3  # 标记当前行
+    id = 0
     while (row_now < nrows):
         if isinstance(sheet.cell(row_now, 2).value, float):
             print("454 row_now: ", row_now)
@@ -1050,6 +1051,10 @@ def reorder_short(filename):
 
     row_now = 5  # 标记当前行
     headcount = 0
+    master = ''
+    members = []
+
+    id = 0
     while (row_now < nrows):
         # if isinstance(sheet.cell(row_now, 2).value,float):
 
@@ -1060,7 +1065,7 @@ def reorder_short(filename):
         # phone = sheet.cell(row_now, 9).value
         # note = sheet.cell(row_now, 10).value
 
-        # members=[]
+
         if sheet.cell(row_now, 0).value != '':
             id = int(sheet.cell(row_now, 0).value)
             master = sheet.cell(row_now, 1).value
@@ -1068,11 +1073,13 @@ def reorder_short(filename):
             last_id = id
             last_master = master
 
+            #members = []
+
             if id != 1:
                 info.append([last_id, last_master, members, headcount])
                 headcount = 0
 
-            members = []
+
 
         if sheet.cell(row_now, 2) != '' and sheet.cell(row_now, 3):
             member_name = sheet.cell(row_now, 2).value
