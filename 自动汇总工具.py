@@ -359,6 +359,9 @@ def GUI():
         write_data_fang(fileName_output, info)
         text1.insert("end", "\n\n填写完成，快去检查一下。\n汇总表为：" + fileName_output)
 
+    def clearText():
+        text1.delete(1.0, tk.END)
+
     tk.Label(root, text="---------------------------汇总表---------------------------").pack()
     tk.Button(root, width=15, height=1, text="打开确认表", command=open_input).pack()
     tk.Button(root, width=15, height=1, text="生成汇总表", command=write).pack()
@@ -387,6 +390,9 @@ def GUI():
     tk.Button(root, width=15, height=1, text="打开确认表", command=open_input).pack()
     tk.Button(root, width=15, height=1, text="生成汇总表", command=write_fang).pack()
     '''
+
+    tk.Label(root, text="-------------------------------清空-------------------------------").pack()
+    tk.Button(root, width=15, height=1, text="清空下方文字", command=clearText).pack()
 
     text1.pack()
     tk.mainloop()
