@@ -65,18 +65,19 @@ def read_data(filename):
             errors.append(master.replace(" ", ""))
             # errors.append(master.replace(" ","") != sheetname.replace(" ",""))
             # errors.append(master.strip() != sheetname.strip())
-        if (id == ''):
+        if id == '':
             # print("empty id and id_confirm is:")
             # print(id_confirm)
             errors.append("编号应为{}的表的编号缺少编号".format(id_confirm))
         elif int(id) != id_confirm:
             errors.append("编号为{}的表的编号存在错误".format(id))
             errors.append("id_confirm: {}".format(id_confirm))
-        if sheet.cell(9, 2).value != '户主' :
+
+        if sheet.cell(9, 2).value != '户主' and sheet.cell(9, 2).value != '本人':
             #print(sheet.cell(9, 2))
             #print(sheet.cell(9, 2) != "户主")
-
             errors.append("编号为{}的表第10行不为“户主”".format(id))
+
         # 信息核对
 
         members = []
@@ -100,28 +101,34 @@ def read_data(filename):
                 if len(id_number) != 18:
                     errors.append("编号为{}的表中身份证号位数不为18".format(id))
                     errors.append("错误行数为：{}".format(row + 1))
-                if id_number[-2] == 'X':
-                    print("X occurs")
-                    print(i)
-                    print(id_number)
-                    print(master)
-                if id_number[-2].isdigit():
-                    if int(id_number[-2]) % 2 == 0:
-                        gender = '女'
-                    else:
-                        gender = '男'
+
+                if len(id_number) < 2:
+                    print("The length of id_number is less than 2")
+                    print("id_number:", id_number)
+                    print("id:", id)
                 else:
-                    gender = '错'
-                    errors.append("编号为{}的表中身份证号倒数第二位不是数字".format(id))
-                    errors.append("错误行数为：{}".format(row + 1))
+                    if id_number[-2] == 'X':
+                        print("X occurs")
+                        print(i)
+                        print(id_number)
+                        print(master)
+                    if id_number[-2].isdigit():
+                        if int(id_number[-2]) % 2 == 0:
+                            gender = '女'
+                        else:
+                            gender = '男'
+                    else:
+                        gender = '错'
+                        errors.append("编号为{}的表中身份证号倒数第二位不是数字".format(id))
+                        errors.append("错误行数为：{}".format(row + 1))
             # 信息核对
             if sheet.cell(row, 2).value.strip() == "户主" and sheet.cell(row, 0).value.strip() != sheetname.strip():
                 errors.append("编号为{}的表中sheet名与成员信息的户主名不一致。分别为： ".format(id))
                 errors.append(sheetname.strip())
                 errors.append(sheet.cell(row, 0).value.strip())
                 # errors.append(sheet.cell(row, 0).value.strip()!=sheetname.strip())
-            elif sheet.cell(row, 2).value.strip() == "户主" and sheet.cell(row, 4).value.strip() != sheet.cell(4,
-                                                                                                             7).value:
+            elif (sheet.cell(row, 2).value.strip() == "户主" or sheet.cell(row, 2).value.strip() == "本人") \
+                                                            and sheet.cell(row, 4).value.strip() != sheet.cell(4, 7).value:
                 errors.append("编号为{}的表中户主证件号码前后不一致".format(id))
 
             members.append([sheet.cell(row, 0).value, sheet.cell(row, 2).value, gender, sheet.cell(row, 4).value,
