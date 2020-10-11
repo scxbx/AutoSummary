@@ -4,14 +4,13 @@ import re
 import tkinter as tk
 from tkinter import filedialog
 
-
 # TEST GIT
 
 # 读取"确认表"，创建列表
 # ·字典内分别设置 编号、联系电话、家庭住址、家庭成员
 # 数据核对：检测sheet名、表格户主名与成员信息中的户主名是否一致，若不一致则报错
 #           检测身份证号是否缺失
-def read_data(filename):
+def read_data(filename, isCheckMasterAndSheetname):
     info = []  # 储存确认登记表中的信息
     errors = []  # 储存疑似有误的信息
     id_confirm = 0  # 防止编号输入有误
@@ -59,7 +58,7 @@ def read_data(filename):
             errors.append("编号为{}的表中家庭人数不一致".format(id))
 
         # 信息核对
-        if master.strip() != sheetname.strip():
+        if isCheckMasterAndSheetname.get() == 1 and master.strip() != sheetname.strip():
             errors.append("编号为{}的表中sheet名与户主名不一致。分别为：".format(id))
             errors.append(sheetname.replace(" ", ""))
             errors.append(master.replace(" ", ""))
@@ -88,6 +87,8 @@ def read_data(filename):
             row = 9 + int(i)
 
             id_number = sheet.cell(row, 4).value.strip()
+            gender = ''
+
             if id_number == '':
                 # 户主无身份证号
                 errors.append("编号为{}的表中身份证号缺失".format(id))
@@ -95,7 +96,7 @@ def read_data(filename):
                 # errors.append(i)
                 # errors.append(sheet.cell(row - 1, 0))
                 # errors.append(sheet.cell(row, 0))
-                gender = ''
+
             else:
                 # print(len(id_number))
                 if len(id_number) != 18:
@@ -122,7 +123,7 @@ def read_data(filename):
                         errors.append("编号为{}的表中身份证号倒数第二位不是数字".format(id))
                         errors.append("错误行数为：{}".format(row + 1))
             # 信息核对
-            if sheet.cell(row, 2).value.strip() == "户主" and sheet.cell(row, 0).value.strip() != sheetname.strip():
+            if isCheckMasterAndSheetname.get() == 1 and sheet.cell(row, 2).value.strip() == "户主" and sheet.cell(row, 0).value.strip() != sheetname.strip():
                 errors.append("编号为{}的表中sheet名与成员信息的户主名不一致。分别为： ".format(id))
                 errors.append(sheetname.strip())
                 errors.append(sheet.cell(row, 0).value.strip())
@@ -275,13 +276,16 @@ def GUI():
     text1.config(yscrollcommand=scroll.set)  # 将滚动条关联到文本框
 
     def open_input():
+        # remove later
+        text1.insert("end", isCheckMasterAndSheetname.get())
+
         global fileName_input
         fileName_input = filedialog.askopenfilename(
             filetypes=[("Excel", ".xls"), ("Excel", ".xlsx")])
         text1.insert('end', "\n\n确认表为：" + fileName_input)
 
         global info, errors
-        info, errors = read_data(fileName_input)
+        info, errors = read_data(fileName_input, isCheckMasterAndSheetname)
 
         if len(errors) == 0:
             text1.insert("end", "\n\n没有发现错误。\n ")
@@ -369,6 +373,13 @@ def GUI():
     def clearText():
         text1.delete(1.0, tk.END)
 
+    isCheckMasterAndSheetname = tk.IntVar()
+    C1 = tk.Checkbutton(root, text="检查sheet名是否为户主", variable=isCheckMasterAndSheetname,
+                        onvalue=1, offvalue=0, width=20)
+
+    C1.pack()
+
+
     tk.Label(root, text="---------------------------汇总表---------------------------").pack()
     tk.Button(root, width=15, height=1, text="打开确认表", command=open_input).pack()
     tk.Button(root, width=15, height=1, text="生成汇总表", command=write).pack()
@@ -400,6 +411,9 @@ def GUI():
 
     tk.Label(root, text="-------------------------------清空-------------------------------").pack()
     tk.Button(root, width=15, height=1, text="清空下方文字", command=clearText).pack()
+
+
+
 
     text1.pack()
     tk.mainloop()
