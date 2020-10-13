@@ -4,6 +4,7 @@ import re
 import tkinter as tk
 from tkinter import filedialog
 
+
 # TEST GIT
 
 # 读取"确认表"，创建列表
@@ -21,7 +22,7 @@ def read_data(filename, isCheckMasterAndSheetname):
     for sheetname in sheetnames:
 
         sheet = workbook.sheet_by_name(sheetname)
-        #print(sheetname)
+        # print(sheetname)
         id_strs = sheet.cell(1, 10).value
         # print(id_strs)
         # print(type(id_strs))
@@ -73,8 +74,8 @@ def read_data(filename, isCheckMasterAndSheetname):
             errors.append("id_confirm: {}".format(id_confirm))
 
         if sheet.cell(9, 2).value != '户主' and sheet.cell(9, 2).value != '本人':
-            #print(sheet.cell(9, 2))
-            #print(sheet.cell(9, 2) != "户主")
+            # print(sheet.cell(9, 2))
+            # print(sheet.cell(9, 2) != "户主")
             errors.append("编号为{}的表第10行不为“户主”".format(id))
 
         # 信息核对
@@ -123,13 +124,14 @@ def read_data(filename, isCheckMasterAndSheetname):
                         errors.append("编号为{}的表中身份证号倒数第二位不是数字".format(id))
                         errors.append("错误行数为：{}".format(row + 1))
             # 信息核对
-            if isCheckMasterAndSheetname.get() == 1 and sheet.cell(row, 2).value.strip() == "户主" and sheet.cell(row, 0).value.strip() != sheetname.strip():
+            if isCheckMasterAndSheetname.get() == 1 and sheet.cell(row, 2).value.strip() == "户主" and sheet.cell(row,
+                                                                                                                0).value.strip() != sheetname.strip():
                 errors.append("编号为{}的表中sheet名与成员信息的户主名不一致。分别为： ".format(id))
                 errors.append(sheetname.strip())
                 errors.append(sheet.cell(row, 0).value.strip())
                 # errors.append(sheet.cell(row, 0).value.strip()!=sheetname.strip())
             elif (sheet.cell(row, 2).value.strip() == "户主" or sheet.cell(row, 2).value.strip() == "本人") \
-                                                            and sheet.cell(row, 4).value.strip() != sheet.cell(4, 7).value:
+                    and sheet.cell(row, 4).value.strip() != sheet.cell(4, 7).value:
                 errors.append("编号为{}的表中户主证件号码前后不一致".format(id))
 
             members.append([sheet.cell(row, 0).value, sheet.cell(row, 2).value, gender, sheet.cell(row, 4).value,
@@ -295,7 +297,6 @@ def GUI():
         for error in errors:
             text1.insert("end", "\n{}".format(error))
 
-
     def open_output():
         global fileName_output
         fileName_output = filedialog.askopenfilename(
@@ -342,7 +343,7 @@ def GUI():
     def writeRepresentativeGUI():
         strlist = fileName_intput_short.split('.')
         fileName_output = strlist[0] + '_户代表.xls'
-        writeRepresentative(fileName_output, infoShort)
+        writeRepresentative(fileName_output, infoShort, isFangVer)
         text1.insert("end", "\n\n填写完成，快去检查一下。\n户代表：" + fileName_output)
 
     def open_order_short_gui():
@@ -379,7 +380,6 @@ def GUI():
 
     C1.pack()
 
-
     tk.Label(root, text="---------------------------汇总表---------------------------").pack()
     tk.Button(root, width=15, height=1, text="打开确认表", command=open_input).pack()
     tk.Button(root, width=15, height=1, text="生成汇总表", command=write).pack()
@@ -395,6 +395,12 @@ def GUI():
     tk.Button(root, width=15, height=1, text="获取折股量化表", command=writeShortGUI).pack()
 
     tk.Label(root, text="----------------生成村民代表名单------------------").pack()
+    # Fang Version: all pages are of 25 people
+    isFangVer = tk.IntVar()
+    CheckBoxRepre = tk.Checkbutton(root, text="王祚芳版（每页25人）", variable=isFangVer,
+                        onvalue=1, offvalue=0, width=20)
+
+    CheckBoxRepre.pack()
     tk.Button(root, width=15, height=1, text="选择汇总表", command=readReprensentativeGUI).pack()
     tk.Button(root, width=15, height=1, text="获取村民代表名单", command=writeRepresentativeGUI).pack()
 
@@ -411,9 +417,6 @@ def GUI():
 
     tk.Label(root, text="-------------------------------清空-------------------------------").pack()
     tk.Button(root, width=15, height=1, text="清空下方文字", command=clearText).pack()
-
-
-
 
     text1.pack()
     tk.mainloop()
@@ -619,9 +622,8 @@ def readShort(filename):
     # ignore the last row of the sheet since the row is for summary
     while (row_now < nrows):
 
-
-        #print("test 581 row_now", row_now)
-        #print("test 581 sheet.cell(row_now, 0).value",sheet.cell(row_now, 0).value)
+        # print("test 581 row_now", row_now)
+        # print("test 581 sheet.cell(row_now, 0).value",sheet.cell(row_now, 0).value)
         if (sheet.cell(row_now, 0).value != '') and (not is_number(sheet.cell(row_now, 0).value)):
             break
 
@@ -648,8 +650,8 @@ def readShort(filename):
             members = []
 
             for hc in range(headcount):
-                #print("test 601 row_now: ", row_now)
-                #print("test 602 hc: ", hc)
+                # print("test 601 row_now: ", row_now)
+                # print("test 602 hc: ", hc)
                 try:
                     member_name = sheet.cell(row_now + hc, 3).value
                     member_relation = sheet.cell(row_now + hc, 4).value
@@ -778,7 +780,8 @@ def writeShort(filename, infoShort):
     sheet1.col(8).width = 256 * 16
     f.save(filename)
 
-#-----------------------------户代表名单 begin------------------------------------------
+
+# -----------------------------户代表名单 begin------------------------------------------
 def readRepresentative(filename):
     infoShort = []  # 储存汇总表中的信息
     errors_short = []
@@ -792,9 +795,8 @@ def readRepresentative(filename):
     # ignore the last row of the sheet since the row is for summary
     while (row_now < nrows):
 
-
-        #print("test 581 row_now", row_now)
-        #print("test 581 sheet.cell(row_now, 0).value",sheet.cell(row_now, 0).value)
+        # print("test 581 row_now", row_now)
+        # print("test 581 sheet.cell(row_now, 0).value",sheet.cell(row_now, 0).value)
         if (sheet.cell(row_now, 0).value != '') and (not is_number(sheet.cell(row_now, 0).value)):
             break
 
@@ -813,12 +815,12 @@ def readRepresentative(filename):
                     errors_short.append("序号不为整数")
 
             master = sheet.cell(row_now, 1).value
-            #headcount = int(sheet.cell(row_now, 2).value)
-            #address = sheet.cell(row_now, 8).value
+            # headcount = int(sheet.cell(row_now, 2).value)
+            # address = sheet.cell(row_now, 8).value
             # phone = sheet.cell(row_now, 9).value
-            #note = sheet.cell(row_now, 10).value
+            # note = sheet.cell(row_now, 10).value
             gender = sheet.cell(row_now, 5).value
-            #members = []
+            # members = []
 
             '''
             for hc in range(headcount):
@@ -842,7 +844,7 @@ def readRepresentative(filename):
     return infoShort, errors_short
 
 
-def writeRepresentative(filename, infoShort):
+def writeRepresentative(filename, infoShort, isFangVer):
     f = xlwt.Workbook()  # 创建工作簿
 
     '''
@@ -909,40 +911,54 @@ def writeRepresentative(filename, infoShort):
     row_now = 0
     total_menbers = 0
 
-    for i in range(len(infoShort)):
-        # 获取该户总人数，确定需合并的单元格行数
-
-        #headcount = int(infoShort[i][2])
-
-        if i < 24:
+    if isFangVer.get() == 1:
+        print("This is fange version!")
+        for i in range(len(infoShort)):
+            x = int(i / 25)
             # 序号
-            sheet1.write(row_now, 0, infoShort[i][0], style)
+            sheet1.write(row_now - 25 * x, 0 + 4 * x, infoShort[i][0], style)
             # 户主
-            sheet1.write(row_now, 1, infoShort[i][1], style)
+            sheet1.write(row_now - 25 * x, 1 + 4 * x, infoShort[i][1], style)
             # 性别
-            sheet1.write(row_now, 2, infoShort[i][2], style)
-            #备注 设为空
-            sheet1.write(row_now, 3, '', style)
-        elif i < 48:
-            # 序号
-            sheet1.write(row_now - 24, 4, infoShort[i][0], style)
-            # 户主
-            sheet1.write(row_now - 24, 5, infoShort[i][1], style)
-            # 性别
-            sheet1.write(row_now - 24, 6, infoShort[i][2], style)
+            sheet1.write(row_now - 25 * x, 2 + 4 * x, infoShort[i][2], style)
             # 备注 设为空
-            sheet1.write(row_now - 24, 7, '', style)
-        else:
-            x = int((i - 48) / 26)
-            # 序号
-            sheet1.write(row_now - 48 - 26 * x, 8 + 4 * x, infoShort[i][0], style)
-            # 户主
-            sheet1.write(row_now - 48 - 26 * x, 9 + 4 * x, infoShort[i][1], style)
-            # 性别
-            sheet1.write(row_now - 48 - 26 * x, 10 + 4 * x, infoShort[i][2], style)
-            # 备注 设为空
-            sheet1.write(row_now - 48 - 26 * x, 11 + 4 * x, '', style)
-        row_now += 1  # 根据人数进行移动
+            sheet1.write(row_now - 25 * x, 3 + 4 * x, '', style)
+            row_now += 1  # 根据人数进行移动
+    else:
+        for i in range(len(infoShort)):
+            # 获取该户总人数，确定需合并的单元格行数
+
+            # headcount = int(infoShort[i][2])
+
+            if i < 24:
+                # 序号
+                sheet1.write(row_now, 0, infoShort[i][0], style)
+                # 户主
+                sheet1.write(row_now, 1, infoShort[i][1], style)
+                # 性别
+                sheet1.write(row_now, 2, infoShort[i][2], style)
+                # 备注 设为空
+                sheet1.write(row_now, 3, '', style)
+            elif i < 48:
+                # 序号
+                sheet1.write(row_now - 24, 4, infoShort[i][0], style)
+                # 户主
+                sheet1.write(row_now - 24, 5, infoShort[i][1], style)
+                # 性别
+                sheet1.write(row_now - 24, 6, infoShort[i][2], style)
+                # 备注 设为空
+                sheet1.write(row_now - 24, 7, '', style)
+            else:
+                x = int((i - 48) / 26)
+                # 序号
+                sheet1.write(row_now - 48 - 26 * x, 8 + 4 * x, infoShort[i][0], style)
+                # 户主
+                sheet1.write(row_now - 48 - 26 * x, 9 + 4 * x, infoShort[i][1], style)
+                # 性别
+                sheet1.write(row_now - 48 - 26 * x, 10 + 4 * x, infoShort[i][2], style)
+                # 备注 设为空
+                sheet1.write(row_now - 48 - 26 * x, 11 + 4 * x, '', style)
+            row_now += 1  # 根据人数进行移动
 
     '''
     sheet1.write(row_now, 0, "合计", style)
@@ -962,7 +978,9 @@ def writeRepresentative(filename, infoShort):
     sheet1.col(8).width = 256 * 16
     '''
     f.save(filename)
-#----------------------------户代表名单 end------------------------------------------
+
+
+# ----------------------------户代表名单 end------------------------------------------
 # -----------------------------------------------------------------------------------------------
 
 # ------------------------------Order Short Begin-------------------------------------------------------------
@@ -1086,7 +1104,6 @@ def reorder_short(filename):
         # phone = sheet.cell(row_now, 9).value
         # note = sheet.cell(row_now, 10).value
 
-
         if sheet.cell(row_now, 0).value != '':
             id = int(sheet.cell(row_now, 0).value)
             master = sheet.cell(row_now, 1).value
@@ -1094,13 +1111,11 @@ def reorder_short(filename):
             last_id = id
             last_master = master
 
-            #members = []
+            # members = []
 
             if id != 1:
                 info.append([last_id, last_master, members, headcount])
                 headcount = 0
-
-
 
         if sheet.cell(row_now, 2) != '' and sheet.cell(row_now, 3):
             member_name = sheet.cell(row_now, 2).value
