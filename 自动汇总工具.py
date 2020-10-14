@@ -1,8 +1,10 @@
-import xlrd, xlwt
 # from xlutils.copy import copy
 import re
 import tkinter as tk
 from tkinter import filedialog
+
+import xlrd
+import xlwt
 
 
 # TEST GIT
@@ -278,8 +280,9 @@ def GUI():
     text1.config(yscrollcommand=scroll.set)  # 将滚动条关联到文本框
 
     def open_input():
-        # remove later
-        text1.insert("end", isCheckMasterAndSheetname.get())
+        # show whether check sheetname or not
+        checkSheetString = "\n\n检查sheetname是否为户主名。" if isCheckMasterAndSheetname.get() == 1 else "\n\n不检查sheetname是否为户主名。"
+        text1.insert("end", checkSheetString)
 
         global fileName_input
         fileName_input = filedialog.askopenfilename(
