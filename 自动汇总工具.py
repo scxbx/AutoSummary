@@ -56,29 +56,29 @@ def read_data(filename, isCheckMasterAndSheetname):
         # 信息核对
         if re.findall("\d+", sheet.cell(7, 10).value):
             if int(re.findall("\d+", sheet.cell(7, 10).value)[0]) != headcount:
-                errors.append("编号为{}的表中家庭人数不一致".format(id))
+                errors.append("编号为{}的表中家庭人数不一致\n".format(id))
         else:
-            errors.append("编号为{}的表中家庭人数不一致".format(id))
+            errors.append("编号为{}的表中家庭人数不一致\n".format(id))
 
         # 信息核对
         if isCheckMasterAndSheetname.get() == 1 and master.strip() != sheetname.strip():
             errors.append("编号为{}的表中sheet名与户主名不一致。分别为：".format(id))
             errors.append(sheetname.replace(" ", ""))
-            errors.append(master.replace(" ", ""))
+            errors.append(master.replace(" ", "") + '\n')
             # errors.append(master.replace(" ","") != sheetname.replace(" ",""))
             # errors.append(master.strip() != sheetname.strip())
         if id == '':
             # print("empty id and id_confirm is:")
             # print(id_confirm)
-            errors.append("编号应为{}的表的编号缺少编号".format(id_confirm))
+            errors.append("编号应为{}的表的编号缺少编号\n".format(id_confirm))
         elif int(id) != id_confirm:
             errors.append("编号为{}的表的编号存在错误".format(id))
-            errors.append("id_confirm: {}".format(id_confirm))
+            errors.append("id_confirm: {}\n".format(id_confirm))
 
         if sheet.cell(9, 2).value != '户主' and sheet.cell(9, 2).value != '本人':
             # print(sheet.cell(9, 2))
             # print(sheet.cell(9, 2) != "户主")
-            errors.append("编号为{}的表第10行不为“户主”".format(id))
+            errors.append("编号为{}的表第10行不为“户主”\n".format(id))
 
         # 信息核对
 
@@ -95,7 +95,9 @@ def read_data(filename, isCheckMasterAndSheetname):
             if id_number == '':
                 # 户主无身份证号
                 errors.append("编号为{}的表中身份证号缺失".format(id))
-                errors.append("缺失行数为：{}".format(row + 1))
+                errors.append("缺失行数为:{}.信息如下:".format(row + 1))
+                errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row,2).value + ' '
+                              + sheet.cell(row,4).value + ' ' + sheet.cell(row,8).value + '\n')
                 # errors.append(i)
                 # errors.append(sheet.cell(row - 1, 0))
                 # errors.append(sheet.cell(row, 0))
@@ -104,7 +106,9 @@ def read_data(filename, isCheckMasterAndSheetname):
                 # print(len(id_number))
                 if len(id_number) != 18:
                     errors.append("编号为{}的表中身份证号位数不为18".format(id))
-                    errors.append("错误行数为：{}".format(row + 1))
+                    errors.append("缺失行数为:{}.信息如下:".format(row + 1))
+                    errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row, 2).value + ' '
+                                  + sheet.cell(row, 4).value + ' ' + sheet.cell(row, 8).value + '\n')
 
                 if len(id_number) < 2:
                     print("The length of id_number is less than 2")
@@ -124,17 +128,19 @@ def read_data(filename, isCheckMasterAndSheetname):
                     else:
                         gender = '错'
                         errors.append("编号为{}的表中身份证号倒数第二位不是数字".format(id))
-                        errors.append("错误行数为：{}".format(row + 1))
+                        errors.append("缺失行数为:{}.信息如下:".format(row + 1))
+                        errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row, 2).value + ' '
+                                      + sheet.cell(row, 4).value + ' ' + sheet.cell(row, 8).value + '\n')
             # 信息核对
             if isCheckMasterAndSheetname.get() == 1 and sheet.cell(row, 2).value.strip() == "户主" and sheet.cell(row,
                                                                                                                 0).value.strip() != sheetname.strip():
                 errors.append("编号为{}的表中sheet名与成员信息的户主名不一致。分别为： ".format(id))
                 errors.append(sheetname.strip())
-                errors.append(sheet.cell(row, 0).value.strip())
+                errors.append(sheet.cell(row, 0).value.strip() + '\n')
                 # errors.append(sheet.cell(row, 0).value.strip()!=sheetname.strip())
             elif (sheet.cell(row, 2).value.strip() == "户主" or sheet.cell(row, 2).value.strip() == "本人") \
                     and sheet.cell(row, 4).value.strip() != sheet.cell(4, 7).value:
-                errors.append("编号为{}的表中户主证件号码前后不一致".format(id))
+                errors.append("编号为{}的表中户主证件号码前后不一致\n".format(id))
 
             members.append([sheet.cell(row, 0).value, sheet.cell(row, 2).value, gender, sheet.cell(row, 4).value,
                             sheet.cell(row, 8).value])
@@ -401,7 +407,7 @@ def GUI():
     # Fang Version: all pages are of 25 people
     isFangVer = tk.IntVar()
     CheckBoxRepre = tk.Checkbutton(root, text="王祚芳版（每页25人）", variable=isFangVer,
-                        onvalue=1, offvalue=0, width=20)
+                                   onvalue=1, offvalue=0, width=20)
 
     CheckBoxRepre.pack()
     tk.Button(root, width=15, height=1, text="选择汇总表", command=readReprensentativeGUI).pack()
