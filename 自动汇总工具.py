@@ -2,6 +2,7 @@
 import re
 import tkinter as tk
 from tkinter import filedialog
+from tkinter.font import Font
 
 import xlrd
 import xlwt
@@ -106,7 +107,7 @@ def read_data(filename, isCheckMasterAndSheetname):
                 # print(len(id_number))
                 if len(id_number) != 18:
                     errors.append("编号为{}的表中身份证号位数不为18".format(id))
-                    errors.append("缺失行数为:{}.信息如下:".format(row + 1))
+                    errors.append("行数为:{}.信息如下:".format(row + 1))
                     errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row, 2).value + ' '
                                   + sheet.cell(row, 4).value + ' ' + sheet.cell(row, 8).value + '\n')
 
@@ -128,7 +129,7 @@ def read_data(filename, isCheckMasterAndSheetname):
                     else:
                         gender = '错'
                         errors.append("编号为{}的表中身份证号倒数第二位不是数字".format(id))
-                        errors.append("缺失行数为:{}.信息如下:".format(row + 1))
+                        errors.append("行数为:{}.信息如下:".format(row + 1))
                         errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row, 2).value + ' '
                                       + sheet.cell(row, 4).value + ' ' + sheet.cell(row, 8).value + '\n')
             # 信息核对
@@ -274,6 +275,10 @@ def GUI():
     root.geometry('500x550+500+100')
 
     text1 = tk.Text(root, width=65, height=30)
+
+    myFont = Font(family='SimHei', size=15)
+    text1.configure(font=myFont)
+
     text1.insert("end", "只能处理*.xls文件，若打开*.xlsx文件可能会不稳定\n")
     text1.insert("end", "请确保工作簿内没有无用工作表\n")
 
