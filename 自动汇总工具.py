@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # from xlutils.copy import copy
 import re
 import tkinter as tk
@@ -96,7 +97,7 @@ def read_data(filename, isCheckMasterAndSheetname):
             if id_number == '':
                 # 户主无身份证号
                 errors.append("编号为{}的表中身份证号缺失".format(id))
-                errors.append("缺失行数为:{}.信息如下:".format(row + 1))
+                errors.append("缺失行数为:{}。信息如下：".format(row + 1))
                 errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row,2).value + ' '
                               + sheet.cell(row,4).value + ' ' + sheet.cell(row,8).value + '\n')
                 # errors.append(i)
@@ -107,7 +108,7 @@ def read_data(filename, isCheckMasterAndSheetname):
                 # print(len(id_number))
                 if len(id_number) != 18:
                     errors.append("编号为{}的表中身份证号位数不为18".format(id))
-                    errors.append("行数为:{}.信息如下:".format(row + 1))
+                    errors.append("行数为:{}。信息如下：".format(row + 1))
                     errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row, 2).value + ' '
                                   + sheet.cell(row, 4).value + ' ' + sheet.cell(row, 8).value + '\n')
 
@@ -129,20 +130,25 @@ def read_data(filename, isCheckMasterAndSheetname):
                     else:
                         gender = '错'
                         errors.append("编号为{}的表中身份证号倒数第二位不是数字".format(id))
-                        errors.append("行数为:{}.信息如下:".format(row + 1))
+                        errors.append("行数为:{}。信息如下：".format(row + 1))
                         errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row, 2).value + ' '
                                       + sheet.cell(row, 4).value + ' ' + sheet.cell(row, 8).value + '\n')
             # 信息核对
-            if isCheckMasterAndSheetname.get() == 1 and sheet.cell(row, 2).value.strip() == "户主" and sheet.cell(row,
-                                                                                                                0).value.strip() != sheetname.strip():
-                errors.append("编号为{}的表中sheet名与成员信息的户主名不一致。分别为： ".format(id))
+            if sheet.cell(row, 2).value.strip() in ["户主", "本人"] and sheet.cell(row, 0).value.strip() != master.strip():
+                errors.append("编号为{}的表中户主名与成员信息的户主名不一致。分别为：".format(id))
+                errors.append(master)
+                errors.append(sheet.cell(row, 0).value.strip() + '\n')
+
+            if isCheckMasterAndSheetname.get() == 1 and sheet.cell(row, 2).value.strip() in ["户主", "本人"] \
+                    and sheet.cell(row, 0).value.strip() != sheetname.strip():
+                errors.append("编号为{}的表中sheet名与成员信息的户主名不一致。分别为：".format(id))
                 errors.append(sheetname.strip())
                 errors.append(sheet.cell(row, 0).value.strip() + '\n')
                 # errors.append(sheet.cell(row, 0).value.strip()!=sheetname.strip())
-            elif (sheet.cell(row, 2).value.strip() == "户主" or sheet.cell(row, 2).value.strip() == "本人") \
-                    and sheet.cell(row, 4).value.strip() != sheet.cell(4, 7).value:
-                errors.append("编号为{}的表中户主证件号码前后不一致\n".format(id))
-
+            elif sheet.cell(row, 2).value.strip() in ["户主", "本人"] \
+                    and sheet.cell(row, 4).value.strip() != sheet.cell(4, 7).value.strip():
+                errors.append("编号为{}的表中户主证件号码前后不一致。分别为：".format(id))
+                errors.append(sheet.cell(4, 7).value + '\n' + sheet.cell(row, 4).value.strip() + '\n')
             members.append([sheet.cell(row, 0).value, sheet.cell(row, 2).value, gender, sheet.cell(row, 4).value,
                             sheet.cell(row, 8).value])
 
