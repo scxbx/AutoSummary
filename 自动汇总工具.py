@@ -283,7 +283,7 @@ def GUI():
     root = tk.Tk()
 
     root.title("文件处理")
-    root.geometry('500x550+500+100')
+    root.geometry('500x750+500+100')
 
     topFrame = tk.Frame(root)
     topFrame.pack(side=tk.TOP)
@@ -471,6 +471,23 @@ def GUI():
     tk.Button(rightFrame, width=15, height=1, text="清空下方文字", command=clearText).pack()
     tk.Button(rightFrame, width=15, height=1, text="重新打开这个文档", command=reOpen).pack()
     text1.pack()
+
+    # -------------------------font size-----------------------------
+    value = tk.StringVar()
+    v = tk.StringVar()
+    b1 = tk.Scale(rightFrame, length=200,
+                  orient=tk.HORIZONTAL, variable=value, from_='15', to='30')
+    b1.pack()
+    # b3 = tk.Entry(rightFrame, textvariable=v)
+
+    def setFontSize():
+        v.set(value.get())
+        myFont.configure(size=value.get())
+        print(myFont)
+    b4 = tk.Button(rightFrame, text='更改字号', command=setFontSize)
+    b4.pack()
+    # b3.pack()
+
     tk.mainloop()
 
 
