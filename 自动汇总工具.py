@@ -8,6 +8,9 @@ from tkinter.font import Font
 import xlrd
 import xlwt
 
+fileName_input = ''
+info = []
+errors = []
 
 # TEST GIT
 
@@ -282,6 +285,15 @@ def GUI():
     root.title("文件处理")
     root.geometry('500x550+500+100')
 
+    topFrame = tk.Frame(root)
+    topFrame.pack(side=tk.TOP)
+
+    leftFrame = tk.Frame(topFrame)
+    leftFrame.pack(side=tk.LEFT)
+
+    rightFrame = tk.Frame(topFrame)
+    rightFrame.pack(side=tk.RIGHT)
+
     text1 = tk.Text(root, width=65, height=30)
 
     myFont = Font(family='SimHei', size=15)
@@ -396,15 +408,33 @@ def GUI():
     def clearText():
         text1.delete(1.0, tk.END)
 
+    # to reopen current file
+    def reOpen():
+        text1.insert("end", fileName_input)
+        if fileName_input == '':
+            text1.insert("end", "\n\n尚未选择任何文档。\n ")
+        else:
+            global info, errors
+            info, errors = read_data(fileName_input, isCheckMasterAndSheetname)
+
+            if len(errors) == 0:
+                text1.insert("end", "\n\n没有发现错误。\n ")
+                return
+
+            text1.insert("end", "\n\n疑似有误的信息如下所示：\n")
+            for error in errors:
+                text1.insert("end", "\n{}".format(error))
+
+
     isCheckMasterAndSheetname = tk.IntVar()
-    C1 = tk.Checkbutton(root, text="检查sheet名是否为户主", variable=isCheckMasterAndSheetname,
+    C1 = tk.Checkbutton(rightFrame, text="检查sheet名是否为户主", variable=isCheckMasterAndSheetname,
                         onvalue=1, offvalue=0, width=20)
 
     C1.pack()
 
-    tk.Label(root, text="---------------------------汇总表---------------------------").pack()
-    tk.Button(root, width=15, height=1, text="打开确认表", command=open_input).pack()
-    tk.Button(root, width=15, height=1, text="生成汇总表", command=write).pack()
+    tk.Label(leftFrame, text="-------------汇总表-------------").pack()
+    tk.Button(leftFrame, width=15, height=1, text="打开确认表", command=open_input).pack()
+    tk.Button(leftFrame, width=15, height=1, text="生成汇总表", command=write).pack()
 
     '''
     tk.Label(root, text="------------------------汇总表排序---------------------------").pack()
@@ -412,19 +442,19 @@ def GUI():
     tk.Button(root, width=15, height=1, text="汇总表排序", command=order).pack()
     '''
 
-    tk.Label(root, text="----------------生成折股量化表------------------").pack()
-    tk.Button(root, width=15, height=1, text="选择汇总表", command=readShortGUI).pack()
-    tk.Button(root, width=15, height=1, text="获取折股量化表", command=writeShortGUI).pack()
+    tk.Label(leftFrame, text="----------生成折股量化表----------").pack()
+    tk.Button(leftFrame, width=15, height=1, text="选择汇总表", command=readShortGUI).pack()
+    tk.Button(leftFrame, width=15, height=1, text="获取折股量化表", command=writeShortGUI).pack()
 
-    tk.Label(root, text="----------------生成村民代表名单------------------").pack()
+    tk.Label(leftFrame, text="---------生成村民代表名单---------").pack()
     # Fang Version: all pages are of 25 people
     isFangVer = tk.IntVar()
-    CheckBoxRepre = tk.Checkbutton(root, text="王祚芳版（每页25人）", variable=isFangVer,
+    CheckBoxRepre = tk.Checkbutton(leftFrame, text="王祚芳版（每页25人）", variable=isFangVer,
                                    onvalue=1, offvalue=0, width=20)
 
     CheckBoxRepre.pack()
-    tk.Button(root, width=15, height=1, text="选择汇总表", command=readReprensentativeGUI).pack()
-    tk.Button(root, width=15, height=1, text="获取村民代表名单", command=writeRepresentativeGUI).pack()
+    tk.Button(leftFrame, width=15, height=1, text="选择汇总表", command=readReprensentativeGUI).pack()
+    tk.Button(leftFrame, width=15, height=1, text="获取村民代表名单", command=writeRepresentativeGUI).pack()
 
     '''
     tk.Label(root, text="--------------农村集体经济组织股权确认登记表 排序------------------").pack()
@@ -437,9 +467,9 @@ def GUI():
     tk.Button(root, width=15, height=1, text="生成汇总表", command=write_fang).pack()
     '''
 
-    tk.Label(root, text="-------------------------------清空-------------------------------").pack()
-    tk.Button(root, width=15, height=1, text="清空下方文字", command=clearText).pack()
-
+    # tk.Label(rightFrame, text="------------清空-----------").pack()
+    tk.Button(rightFrame, width=15, height=1, text="清空下方文字", command=clearText).pack()
+    tk.Button(rightFrame, width=15, height=1, text="重新打开这个文档", command=reOpen).pack()
     text1.pack()
     tk.mainloop()
 
@@ -1302,7 +1332,7 @@ def checkAllKeysInAString(list, str):
     for key in list:
         if key not in str:
             return False
-    return True;
+    return True
 
 
 if __name__ == '__main__':
