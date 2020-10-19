@@ -51,7 +51,9 @@ def read_data(filename, isCheckMasterAndSheetname):
 
         # 根据家庭成员行数获取家庭人数
         headcount = 0
-        while sheet.cell(9 + headcount, 0).value and sheet.cell(9 + headcount, 0).value != "家庭\n代表         \n意见":
+        familyCommentList = ['家庭', '代表', '意见']
+        while sheet.cell(9 + headcount, 0).value and not checkAllKeysInAString(familyCommentList,
+                                                                               sheet.cell(9 + headcount, 0).value):
             headcount += 1
         # while sheet.cell(9 + headcount, 0).value:
         # print(any(char.isdigit() for char in sheet.cell(9+headcount, 0).value))
@@ -98,8 +100,8 @@ def read_data(filename, isCheckMasterAndSheetname):
                 # 户主无身份证号
                 errors.append("编号为{}的表中身份证号缺失".format(id))
                 errors.append("缺失行数为:{}。信息如下：".format(row + 1))
-                errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row,2).value + ' '
-                              + sheet.cell(row,4).value + ' ' + sheet.cell(row,8).value + '\n')
+                errors.append(sheet.cell(row, 0).value + ' ' + sheet.cell(row, 2).value + ' '
+                              + sheet.cell(row, 4).value + ' ' + sheet.cell(row, 8).value + '\n')
                 # errors.append(i)
                 # errors.append(sheet.cell(row - 1, 0))
                 # errors.append(sheet.cell(row, 0))
@@ -1277,7 +1279,7 @@ def write_data_fang(filename, info):
 
 # ---------------------------------农村集体经济组织成员身份界定确认汇总表 芳 End-----------------------------------------
 
-# to judge where a string is a number
+# to judge whether a string is a number
 def is_number(s):
     try:
         float(s)
@@ -1293,6 +1295,14 @@ def is_number(s):
         pass
 
     return False
+
+
+# to judge whether a string contains all keys in a list
+def checkAllKeysInAString(list, str):
+    for key in list:
+        if key not in str:
+            return False
+    return True;
 
 
 if __name__ == '__main__':
