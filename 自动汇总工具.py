@@ -12,6 +12,7 @@ fileName_input = ''
 info = []
 errors = []
 
+
 # TEST GIT
 
 # 读取"确认表"，创建列表
@@ -30,7 +31,16 @@ def read_data(filename, isCheckMasterAndSheetname):
 
         sheet = workbook.sheet_by_name(sheetname)
         # print(sheetname)
-        id_strs = sheet.cell(1, 10).value
+
+        # test
+        # print(sheetname + ' ' + str(sheet.nrows) + ' ' + str(sheet.ncols))
+
+        id_strs = ''
+        try:
+            id_strs = sheet.cell(1, 10).value
+        except IndexError:
+            errors.append("存在空表，请删除。如果找不到空表尝试取消隐藏。")
+            continue
         # print(id_strs)
         # print(type(id_strs))
         # print(type(id_strs) == float)
@@ -410,10 +420,11 @@ def GUI():
 
     # to reopen current file
     def reOpen():
-        text1.insert("end", fileName_input)
         if fileName_input == '':
             text1.insert("end", "\n\n尚未选择任何文档。\n ")
         else:
+            text1.insert("end", "\n确认表为：{}".format(fileName_input))
+
             global info, errors
             info, errors = read_data(fileName_input, isCheckMasterAndSheetname)
 
@@ -425,8 +436,8 @@ def GUI():
             for error in errors:
                 text1.insert("end", "\n{}".format(error))
 
-
     isCheckMasterAndSheetname = tk.IntVar()
+    isCheckMasterAndSheetname.set(1)
     C1 = tk.Checkbutton(rightFrame, text="检查sheet名是否为户主", variable=isCheckMasterAndSheetname,
                         onvalue=1, offvalue=0, width=20)
 
@@ -478,12 +489,14 @@ def GUI():
     b1 = tk.Scale(rightFrame, length=200,
                   orient=tk.HORIZONTAL, variable=value, from_='15', to='30')
     b1.pack()
+
     # b3 = tk.Entry(rightFrame, textvariable=v)
 
     def setFontSize():
-        v.set(value.get())
+        # v.set(value.get())
         myFont.configure(size=value.get())
-        print(myFont)
+        # print(myFont)
+
     b4 = tk.Button(rightFrame, text='更改字号', command=setFontSize)
     b4.pack()
     # b3.pack()
