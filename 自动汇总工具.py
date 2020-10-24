@@ -103,6 +103,7 @@ def read_data(filename, isCheckMasterAndSheetname):
 
         # print("headcount")
         # print(headcount)
+        hasMaster = False
         for i in range(int(headcount)):
             row = 9 + int(i)
 
@@ -132,6 +133,14 @@ def read_data(filename, isCheckMasterAndSheetname):
                     print("id_number:", id_number)
                     print("id:", id)
                 else:
+                    checkIDString = checkIDNumber(id_number)
+                    if checkIDString != 'pass':
+                        try:
+                            string = str(row + 1)
+                        except TypeError:
+                            print(str(row + 1))
+                        errors.append('序号:' + id + '  行数:' + string + '  ' + checkIDString + '\n')
+
                     if id_number[-2] == 'X':
                         print("X occurs")
                         print(i)
@@ -166,6 +175,14 @@ def read_data(filename, isCheckMasterAndSheetname):
                 errors.append(sheet.cell(4, 7).value + '\n' + sheet.cell(row, 4).value.strip() + '\n')
             members.append([sheet.cell(row, 0).value, sheet.cell(row, 2).value, gender, sheet.cell(row, 4).value,
                             sheet.cell(row, 8).value])
+
+
+
+            if sheet.cell(row, 2).value.strip() in ["户主", "本人"]:
+                hasMaster = True
+
+        if not hasMaster:
+            errors.append("编号为{}的表的编号缺少户主！\n".format(id))
 
         info.append([id, master, Phone_number, address, headcount, members])
         # print(info[0])
@@ -293,7 +310,7 @@ def GUI():
     root = tk.Tk()
 
     root.title("文件处理")
-    root.geometry('500x750+500+100')
+    root.geometry('500x750+500+30')
 
     topFrame = tk.Frame(root)
     topFrame.pack(side=tk.TOP)
@@ -1364,6 +1381,39 @@ def checkAllKeysInAString(list, str):
             return False
     return True
 
+
+# original author: j_hao104
+# site: https://my.oschina.net/jhao104/blog/756241
+def checkIDNumber(num_str):
+    str_to_int = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5,
+
+                  '6': 6, '7': 7, '8': 8, '9': 9, 'X': 10}
+
+    check_dict = {0: '1', 1: '0', 2: 'X', 3: '9', 4: '8', 5: '7',
+
+                  6: '6', 7: '5', 8: '4', 9: '3', 10: '2'}
+
+    if len(num_str) != 18:
+        return u"身份证号: %s 位数不为18" % num_str
+
+    check_num = 0
+
+    for index, num in enumerate(num_str):
+
+        if index == 17:
+
+            right_code = check_dict.get(check_num % 11)
+
+            if num == right_code:
+
+                print(u"身份证号: %s 校验通过" % num_str)
+
+            else:
+
+                print(u"身份证号: %s 校验不通过, 正确尾号应该为：%s" % (num_str, right_code))
+                return u"%s 校验不通过" % (num_str)
+        check_num += str_to_int.get(num) * (2 ** (17 - index) % 11)
+    return 'pass'
 
 if __name__ == '__main__':
     # 注意事项
