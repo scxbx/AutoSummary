@@ -7,6 +7,7 @@ from tkinter.font import Font
 
 import xlrd
 import xlwt
+from xlutils.copy import copy
 
 fileName_input = ''
 info = []
@@ -135,10 +136,7 @@ def read_data(filename, isCheckMasterAndSheetname):
                 else:
                     checkIDString = checkIDNumber(id_number)
                     if checkIDString != 'pass':
-                        try:
-                            string = str(row + 1)
-                        except TypeError:
-                            print(str(row + 1))
+                        string = str(row + 1)
                         errors.append('序号:' + id + '  行数:' + string + '  ' + checkIDString + '\n')
 
                     if id_number[-2] == 'X':
@@ -175,8 +173,6 @@ def read_data(filename, isCheckMasterAndSheetname):
                 errors.append(sheet.cell(4, 7).value + '\n' + sheet.cell(row, 4).value.strip() + '\n')
             members.append([sheet.cell(row, 0).value, sheet.cell(row, 2).value, gender, sheet.cell(row, 4).value,
                             sheet.cell(row, 8).value])
-
-
 
             if sheet.cell(row, 2).value.strip() in ["户主", "本人"]:
                 hasMaster = True
@@ -453,6 +449,13 @@ def GUI():
             for error in errors:
                 text1.insert("end", "\n{}".format(error))
 
+    def increaseSheetIdGUI():
+        ori_filename = filedialog.askopenfilename(
+            filetypes=[("Excel", ".xls"), ("Excel", ".xlsx")])
+        increaseSheetId(ori_filename)
+        text1.insert("end", "\n已填入序号。请注意调整右边边框！\n")
+
+
     isCheckMasterAndSheetname = tk.IntVar()
     isCheckMasterAndSheetname.set(1)
     C1 = tk.Checkbutton(rightFrame, text="检查sheet名是否为户主", variable=isCheckMasterAndSheetname,
@@ -500,6 +503,9 @@ def GUI():
     tk.Button(rightFrame, width=15, height=1, text="重新打开这个文档", command=reOpen).pack()
     text1.pack()
 
+    # -----------------------------increase sheet id-----------------------------------
+    tk.Button(rightFrame, width=15, height=1, text="填入工作表序号", command=increaseSheetIdGUI).pack()
+
     # -------------------------font size-----------------------------
     value = tk.StringVar()
     v = tk.StringVar()
@@ -519,6 +525,8 @@ def GUI():
     # b3.pack()
 
     tk.mainloop()
+
+
 
 
 # ------------------------------Order Begin-------------------------------------------------------------
@@ -1404,16 +1412,66 @@ def checkIDNumber(num_str):
 
             right_code = check_dict.get(check_num % 11)
 
-            if num == right_code:
-
-                print(u"身份证号: %s 校验通过" % num_str)
-
-            else:
-
-                print(u"身份证号: %s 校验不通过, 正确尾号应该为：%s" % (num_str, right_code))
+            if num != right_code:
+                #print(u"身份证号: %s 校验不通过, 正确尾号应该为：%s" % (num_str, right_code))
                 return u"%s 校验不通过" % (num_str)
         check_num += str_to_int.get(num) * (2 ** (17 - index) % 11)
     return 'pass'
+
+
+def increaseSheetId(filename):
+    # 打开想要更改的excel文件
+    old_excel = xlrd.open_workbook(filename, formatting_info=True)
+    # 将操作文件对象拷贝，变成可写的workbook对象
+    new_excel = copy(old_excel)
+    # 获得第一个sheet的对象
+    # ws = new_excel.get_sheet(0)
+    # 写入数据
+    # ws.write(1, 10, '01')
+    # 字体
+    font = xlwt.Font()  # 为样式创建字体
+    font.name = '宋体'
+    font.height = 20 * 14
+
+    # 对齐方式
+    alignment = xlwt.Alignment()
+    # 0x01(左端对齐)、0x02(水平方向上居中对齐)、0x03(右端对齐)
+    alignment.horz = 0x02
+    # 0x00(上端对齐)、 0x01(垂直方向上居中对齐)、0x02(底端对齐)
+    alignment.vert = 0x01
+
+    # 边框
+    # DASHED虚线、NO_LINE没有、THIN实线
+    borders = xlwt.Borders()
+    borders.left = xlwt.Borders.THIN
+    borders.right = xlwt.Borders.THIN
+    borders.top = xlwt.Borders.THIN
+    borders.bottom = xlwt.Borders.THIN
+
+    # 样式
+    style = xlwt.XFStyle()  # 初始化样式
+    style.font = font
+    style.alignment = alignment
+    style.borders = borders
+
+    # 对齐方式
+    alignment2 = xlwt.Alignment()
+    # 0x01(左端对齐)、0x02(水平方向上居中对齐)、0x03(右端对齐)
+    alignment2.horz = 0x02
+    # 0x00(上端对齐)、 0x01(垂直方向上居中对齐)、0x02(底端对齐)
+    alignment2.vert = 0x01
+
+    sheetnames = old_excel.sheet_names()
+    count = 1
+    for sheetname in sheetnames:
+        ws = new_excel.get_sheet(count - 1)
+        ws.write(1, 10, count, style)
+        count += 1
+
+    # 另存为excel文件，并将文件命名
+    fileName_output = filename[:-4] + '_new.xls'
+    new_excel.save(fileName_output)
+
 
 if __name__ == '__main__':
     # 注意事项
