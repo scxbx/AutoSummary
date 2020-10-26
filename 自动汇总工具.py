@@ -8,6 +8,7 @@ from tkinter.font import Font
 import xlrd
 import xlwt
 from xlutils.copy import copy
+from collections import Counter
 
 fileName_input = ''
 info = []
@@ -24,6 +25,7 @@ def read_data(filename, isCheckMasterAndSheetname):
     info = []  # 储存确认登记表中的信息
     errors = []  # 储存疑似有误的信息
     id_confirm = 0  # 防止编号输入有误
+    allId_number = []
 
     # 打开文件
     workbook = xlrd.open_workbook(filename)
@@ -109,6 +111,7 @@ def read_data(filename, isCheckMasterAndSheetname):
             row = 9 + int(i)
 
             id_number = sheet.cell(row, 4).value.strip()
+            allId_number.append(id_number)
             gender = ''
 
             if id_number == '':
@@ -177,11 +180,19 @@ def read_data(filename, isCheckMasterAndSheetname):
             if sheet.cell(row, 2).value.strip() in ["户主", "本人"]:
                 hasMaster = True
 
+
         if not hasMaster:
             errors.append("编号为{}的表的编号缺少户主！\n".format(id))
 
         info.append([id, master, Phone_number, address, headcount, members])
         # print(info[0])
+
+    # Find Duplicated Elements in all id_number in a workbook
+    duplicatedList = findDuplicatedElements(allId_number)
+    for item in duplicatedList:
+        # print(item)
+        errors.append("存在重复身份证：{}".format(item))
+
     return info, errors
 
 
@@ -1472,6 +1483,10 @@ def increaseSheetId(filename):
     fileName_output = filename[:-4] + '_new.xls'
     new_excel.save(fileName_output)
 
+def findDuplicatedElements(mylist):
+    b = dict(Counter(mylist))
+    return [key for key, value in b.items() if value > 1]  # 只展示重复元素
+    # print({key: value for key, value in b.items() if value > 1})  # 展现重复元素和重复次数
 
 if __name__ == '__main__':
     # 注意事项
