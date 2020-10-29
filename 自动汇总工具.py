@@ -139,8 +139,10 @@ def read_data(filename, isCheckMasterAndSheetname):
                 else:
                     checkIDString = checkIDNumber(id_number)
                     if checkIDString != 'pass':
-                        string = str(row + 1)
-                        errors.append('序号:' + id + '  行数:' + string + '  ' + checkIDString + '\n')
+                        rowString = str(row + 1)
+
+                        errors.append('序号:' + id + '  行数:' + rowString + ' ' + sheet.cell(row, 0).value + ' '
+                                      + checkIDString + '\n')
 
                     if id_number[-2] == 'X':
                         print("X occurs")
@@ -317,7 +319,7 @@ def GUI():
     root = tk.Tk()
 
     root.title("文件处理")
-    root.geometry('500x750+500+30')
+    root.geometry('600x700+500+30')
 
     topFrame = tk.Frame(root)
     topFrame.pack(side=tk.TOP)
@@ -1414,6 +1416,8 @@ def checkIDNumber(num_str):
 
     if len(num_str) != 18:
         return u"身份证号: %s 位数不为18" % num_str
+    if ' ' in num_str.strip():
+        return u"身份证号: %s 中间存在空格" % num_str
 
     check_num = 0
 
@@ -1426,6 +1430,7 @@ def checkIDNumber(num_str):
             if num != right_code:
                 #print(u"身份证号: %s 校验不通过, 正确尾号应该为：%s" % (num_str, right_code))
                 return u"%s 校验不通过" % (num_str)
+
         check_num += str_to_int.get(num) * (2 ** (17 - index) % 11)
     return 'pass'
 
