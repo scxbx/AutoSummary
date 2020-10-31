@@ -182,7 +182,6 @@ def read_data(filename, isCheckMasterAndSheetname):
             if sheet.cell(row, 2).value.strip() in ["户主", "本人"]:
                 hasMaster = True
 
-
         if not hasMaster:
             errors.append("编号为{}的表的编号缺少户主！\n".format(id))
 
@@ -193,7 +192,8 @@ def read_data(filename, isCheckMasterAndSheetname):
     duplicatedList = findDuplicatedElements(allId_number)
     for item in duplicatedList:
         # print(item)
-        errors.append("存在重复身份证：{}".format(item))
+        if item != '':
+            errors.append("存在重复身份证：{}".format(item))
 
     return info, errors
 
@@ -468,7 +468,6 @@ def GUI():
         increaseSheetId(ori_filename)
         text1.insert("end", "\n已填入序号。请注意调整右边边框！\n")
 
-
     isCheckMasterAndSheetname = tk.IntVar()
     isCheckMasterAndSheetname.set(1)
     C1 = tk.Checkbutton(rightFrame, text="检查sheet名是否为户主", variable=isCheckMasterAndSheetname,
@@ -538,8 +537,6 @@ def GUI():
     # b3.pack()
 
     tk.mainloop()
-
-
 
 
 # ------------------------------Order Begin-------------------------------------------------------------
@@ -1428,8 +1425,8 @@ def checkIDNumber(num_str):
             right_code = check_dict.get(check_num % 11)
 
             if num != right_code:
-                #print(u"身份证号: %s 校验不通过, 正确尾号应该为：%s" % (num_str, right_code))
-                return u"%s 校验不通过" % (num_str)
+                print(u"身份证号: %s 校验不通过, 正确尾号应该为：%s" % (num_str, right_code))
+                return u"%s 校验不通过" % num_str
 
         check_num += str_to_int.get(num) * (2 ** (17 - index) % 11)
     return 'pass'
@@ -1488,10 +1485,12 @@ def increaseSheetId(filename):
     fileName_output = filename[:-4] + '_new.xls'
     new_excel.save(fileName_output)
 
+
 def findDuplicatedElements(mylist):
     b = dict(Counter(mylist))
     return [key for key, value in b.items() if value > 1]  # 只展示重复元素
     # print({key: value for key, value in b.items() if value > 1})  # 展现重复元素和重复次数
+
 
 if __name__ == '__main__':
     # 注意事项
