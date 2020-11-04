@@ -864,6 +864,8 @@ def writeShort(filename, infoShort):
         sheet1.write_merge(row_now, row_now + headcount - 1, 1, 1, infoShort[i][1], style)
         # 每户股数合计
         sheet1.write_merge(row_now, row_now + headcount - 1, 5, 5, 10 * headcount, style)
+        # 股权类型
+        sheet1.write_merge(row_now, row_now + headcount - 1, 6, 6, '成员股', style)
         # 地址
         sheet1.write_merge(row_now, row_now + headcount - 1, 7, 7, infoShort[i][4], style2)
         for j in range(headcount):
