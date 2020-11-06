@@ -9,8 +9,10 @@ import xlrd
 import xlwt
 from xlutils.copy import copy
 from collections import Counter
+import os
 
 fileName_input = ''
+directory_input = ''
 info = []
 errors = []
 
@@ -262,6 +264,7 @@ def write_data(filename, info):
         headcount = int(info[i][4])
 
         # 填入 序号
+        print(info[i][0])
         sheet1.write_merge(row_now, row_now + headcount - 1, 0, 0, info[i][0], style)
         # 填入 户主
         sheet1.write_merge(row_now, row_now + headcount - 1, 1, 1, info[i][1], style)
@@ -466,7 +469,29 @@ def GUI():
         ori_filename = filedialog.askopenfilename(
             filetypes=[("Excel", ".xls"), ("Excel", ".xlsx")])
         increaseSheetId(ori_filename)
-        text1.insert("end", "\n已填入序号。请注意调整右边边框！\n")
+        text1.insert("end", "\n已填入序号。请注意调整右边边框并去除眉头和眉脚！\n")
+
+    def shortInDir():
+        global directory_input
+        directory_input = filedialog.askdirectory()
+        # print(directory_input)
+        files = os.listdir(directory_input)  # 得到文件夹下的所有文件名称
+        s = []
+        for file in files:  # 遍历文件夹
+            if not os.path.isdir(file):  # 判断是否是文件夹，不是文件夹才打开
+                global infoShort, errors_short
+                print(file)
+                infoShort, errors_short = readShort(directory_input+"/"+file)
+                text1.insert('end', "\n\n汇总表为：" + file)
+                strlist = file.split('.')
+                fileName_output = directory_input+ '/' + strlist[0] + '_股权.xls'
+                writeShort(fileName_output, infoShort)
+                text1.insert("end", "\n\n填写完成，快去检查一下。\n折股量化表：" + fileName_output)
+
+    def setFontSize():
+        # v.set(value.get())
+        myFont.configure(size=value.get())
+        # print(myFont)
 
     isCheckMasterAndSheetname = tk.IntVar()
     isCheckMasterAndSheetname.set(1)
@@ -527,15 +552,14 @@ def GUI():
 
     # b3 = tk.Entry(rightFrame, textvariable=v)
 
-    def setFontSize():
-        # v.set(value.get())
-        myFont.configure(size=value.get())
-        # print(myFont)
+
 
     b4 = tk.Button(rightFrame, text='更改字号', command=setFontSize)
     b4.pack()
     # b3.pack()
 
+    shortInDirButton = tk.Button(rightFrame, text='读取文件夹并生成折股量化表',command=shortInDir)
+    shortInDirButton.pack()
     tk.mainloop()
 
 
@@ -762,27 +786,34 @@ def readShort(filename):
             headcount = int(sheet.cell(row_now, 2).value)
             address = sheet.cell(row_now, 8).value
             # phone = sheet.cell(row_now, 9).value
-            note = sheet.cell(row_now, 10).value
+            # note = sheet.cell(row_now, 10).value
 
             members = []
 
             for hc in range(headcount):
                 # print("test 601 row_now: ", row_now)
                 # print("test 602 hc: ", hc)
+                member_name = ''
+                member_relation = ''
+                member_note = ''
                 try:
                     member_name = sheet.cell(row_now + hc, 3).value
+                    # print(member_name)
                     member_relation = sheet.cell(row_now + hc, 4).value
+                    # print(member_relation)
                     # member_gender = sheet.cell(row_now + hc, 5).value
                     # member_id_number = sheet.cell(row_now + hc, 6).value
                     member_note = sheet.cell(row_now + hc, 10).value
-                    members.append([member_name, member_relation, note])
+                    # print(member_note)
+
                 except IndexError:
                     print("error row_now + hc: ", row_now + hc)
 
+                members.append([member_name, member_relation, member_note])
                 # print("test 604 member_relation: ", sheet.cell(row_now + hc, 4).value)
             infoShort.append([id, master, headcount, members, address])
         row_now += 1
-
+    # print(infoShort)
     return infoShort, errors_short
 
 
@@ -864,19 +895,23 @@ def writeShort(filename, infoShort):
         sheet1.write_merge(row_now, row_now + headcount - 1, 1, 1, infoShort[i][1], style)
         # 每户股数合计
         sheet1.write_merge(row_now, row_now + headcount - 1, 5, 5, 10 * headcount, style)
-        # 股权类型
-        sheet1.write_merge(row_now, row_now + headcount - 1, 6, 6, '成员股', style)
         # 地址
         sheet1.write_merge(row_now, row_now + headcount - 1, 7, 7, infoShort[i][4], style2)
         for j in range(headcount):
             # 姓名
+            '''
+            print(infoShort)
+            print(infoShort[i])
+            print(infoShort[i][3])
+            print(infoShort[i][3][j])
+            '''
             sheet1.write(row_now + j, 2, infoShort[i][3][j][0], style)
             # 与户主关系
             sheet1.write(row_now + j, 3, infoShort[i][3][j][1], style)
             # 股数
             sheet1.write(row_now + j, 4, 10, style)
             # 股权类型
-            sheet1.write(row_now + j, 6, '', style)
+            sheet1.write(row_now + j, 6, '成员股', style)
             # 备注
             sheet1.write(row_now + j, 8, infoShort[i][3][j][2], style)
 
