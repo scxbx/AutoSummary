@@ -10,14 +10,18 @@ import xlwt
 from xlutils.copy import copy
 from collections import Counter
 import os
+from openpyxl import load_workbook
+from openpyxl.styles import Side, Border, Alignment
 
 fileName_input = ''
 directory_input = ''
 info = []
 errors = []
 
+summary_filename = os.getcwd() + r"\模板\确认汇总表.xlsx"
+short_filename = os.getcwd() + r"\模板\集体资产股权确认登记表.xlsx"
 
-# TEST GIT
+
 
 # 读取"确认表"，创建列表
 # ·字典内分别设置 编号、联系电话、家庭住址、家庭成员
@@ -28,10 +32,13 @@ def read_data(filename, isCheckMasterAndSheetname):
     errors = []  # 储存疑似有误的信息
     id_confirm = 0  # 防止编号输入有误
     allId_number = []
+    familyNumber = 0
+    population = 0
 
     # 打开文件
     workbook = xlrd.open_workbook(filename)
     sheetnames = workbook.sheet_names()
+    familyNumber = len(sheetnames)
     for sheetname in sheetnames:
 
         sheet = workbook.sheet_by_name(sheetname)
@@ -73,6 +80,7 @@ def read_data(filename, isCheckMasterAndSheetname):
         while sheet.cell(9 + headcount, 0).value and not checkAllKeysInAString(familyCommentList,
                                                                                sheet.cell(9 + headcount, 0).value):
             headcount += 1
+        population += headcount
         # while sheet.cell(9 + headcount, 0).value:
         # print(any(char.isdigit() for char in sheet.cell(9+headcount, 0).value))
         # 信息核对
@@ -197,7 +205,7 @@ def read_data(filename, isCheckMasterAndSheetname):
         if item != '':
             errors.append("存在重复身份证：{}".format(item))
 
-    return info, errors
+    return info, errors, familyNumber, population
 
 
 # 根据列表info传入的信息，在原有表格的基础上进行填写
@@ -264,7 +272,6 @@ def write_data(filename, info):
         headcount = int(info[i][4])
 
         # 填入 序号
-        print(info[i][0])
         sheet1.write_merge(row_now, row_now + headcount - 1, 0, 0, info[i][0], style)
         # 填入 户主
         sheet1.write_merge(row_now, row_now + headcount - 1, 1, 1, info[i][1], style)
@@ -360,7 +367,10 @@ def GUI():
         text1.insert('end', "\n\n确认表为：" + fileName_input)
 
         global info, errors
-        info, errors = read_data(fileName_input, isCheckMasterAndSheetname)
+
+        info, errors, familyNumber, population = read_data(fileName_input, isCheckMasterAndSheetname)
+
+        text1.insert('end', '\n\n全村共计{}户，{}人'.format(familyNumber, population))
 
         if len(errors) == 0:
             text1.insert("end", "\n\n没有发现错误。\n ")
@@ -378,8 +388,9 @@ def GUI():
 
     def write():
         # strlist = fileName_input.split('.')
-        fileName_output = fileName_input[:-4] + '_汇总表.xls'
-        write_data(fileName_output, info)
+        in_filename = summary_filename
+        fileName_output = fileName_input[:-4] + '_汇总表.xlsx'
+        write_data_openpyxl(in_filename, fileName_output, info)
         text1.insert("end", "\n\n填写完成，快去检查一下。\n汇总表为：" + fileName_output)
 
     def order():
@@ -400,9 +411,10 @@ def GUI():
         text1.insert('end', "\n\n汇总表为：" + fileName_intput_short)
 
     def writeShortGUI():
+        in_filename = short_filename
         strlist = fileName_intput_short.split('.')
-        fileName_output = strlist[0] + '_股权.xls'
-        writeShort(fileName_output, infoShort)
+        fileName_output = strlist[0] + '_股权.xlsx'
+        write_short_openpyxl(in_filename, fileName_output, infoShort)
         text1.insert("end", "\n\n填写完成，快去检查一下。\n折股量化表：" + fileName_output)
 
     def readReprensentativeGUI():
@@ -455,7 +467,9 @@ def GUI():
             text1.insert("end", "\n确认表为：{}".format(fileName_input))
 
             global info, errors
-            info, errors = read_data(fileName_input, isCheckMasterAndSheetname)
+            info, errors, familyNumber, population = read_data(fileName_input, isCheckMasterAndSheetname)
+
+            text1.insert('end', '\n\n全村共计{}户，{}人'.format(familyNumber, population))
 
             if len(errors) == 0:
                 text1.insert("end", "\n\n没有发现错误。\n ")
@@ -472,6 +486,8 @@ def GUI():
         text1.insert("end", "\n已填入序号。请注意调整右边边框并去除眉头和眉脚！\n")
 
     def shortInDir():
+        in_filename = short_filename
+
         global directory_input
         directory_input = filedialog.askdirectory()
         # print(directory_input)
@@ -481,12 +497,30 @@ def GUI():
             if not os.path.isdir(file):  # 判断是否是文件夹，不是文件夹才打开
                 global infoShort, errors_short
                 print(file)
-                infoShort, errors_short = readShort(directory_input+"/"+file)
+                infoShort, errors_short = readShort(directory_input + "/" + file)
                 text1.insert('end', "\n\n汇总表为：" + file)
                 strlist = file.split('.')
-                fileName_output = directory_input+ '/' + strlist[0] + '_股权.xls'
-                writeShort(fileName_output, infoShort)
+                fileName_output = directory_input + '/' + strlist[0] + '_股权.xlsx'
+                write_short_openpyxl(in_filename, fileName_output, infoShort)
                 text1.insert("end", "\n\n填写完成，快去检查一下。\n折股量化表：" + fileName_output)
+
+    def summaryInDir():
+        in_filename = summary_filename
+
+        global directory_input
+        directory_input = filedialog.askdirectory()
+        files = os.listdir(directory_input)  # 得到文件夹下的所有文件名称
+        s = []
+        for file in files:  # 遍历文件夹
+            if not os.path.isdir(file):  # 判断是否是文件夹，不是文件夹才打开
+                global infoShort, errors_short
+                print(file)
+                info, errors, familyNumber, population = read_data(directory_input + "/" + file, isCheckMasterAndSheetname)
+                text1.insert('end', "\n\n确认表为：" + file)
+                strlist = file.split('.')
+                fileName_output = directory_input + '/../打印/' + strlist[0] + '_汇总表.xlsx'
+                write_data_openpyxl(in_filename, fileName_output, info)
+                text1.insert("end", "\n\n填写完成，快去检查一下。\n汇总表：" + fileName_output)
 
     def setFontSize():
         # v.set(value.get())
@@ -552,15 +586,18 @@ def GUI():
 
     # b3 = tk.Entry(rightFrame, textvariable=v)
 
-
-
     b4 = tk.Button(rightFrame, text='更改字号', command=setFontSize)
     b4.pack()
     # b3.pack()
 
-    shortInDirButton = tk.Button(rightFrame, text='读取文件夹并生成折股量化表',command=shortInDir)
+    summaryInDirButton = tk.Button(rightFrame, text='批量生成汇总表', command=summaryInDir)
+    summaryInDirButton.pack()
+
+    shortInDirButton = tk.Button(rightFrame, text='批量生成折股量化表', command=shortInDir)
     shortInDirButton.pack()
     tk.mainloop()
+
+
 
 
 # ------------------------------Order Begin-------------------------------------------------------------
@@ -1527,6 +1564,126 @@ def findDuplicatedElements(mylist):
     b = dict(Counter(mylist))
     return [key for key, value in b.items() if value > 1]  # 只展示重复元素
     # print({key: value for key, value in b.items() if value > 1})  # 展现重复元素和重复次数
+
+
+def write_data_openpyxl(in_filename, out_filename, info):
+    wb = load_workbook(in_filename)  # 生成一个已存在的wookbook对象
+    ws = wb.active  # 激活sheet
+
+    row_now = 4
+    total_menbers = 0
+
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+
+    align = Alignment(horizontal='center', vertical='center')
+
+    # 根据info进行信息填写
+    for i in range(len(info)):
+        # 获取该户总人数，确定需合并的单元格行数
+        headcount = int(info[i][4])
+
+        # 填入 序号
+        ws.cell(row_now, 1, info[i][0]).border = thin_border
+        ws.merge_cells(start_row=row_now, start_column=1, end_row=row_now + headcount - 1, end_column=1)
+        # 填入 户主
+        ws.cell(row_now, 2, info[i][1]).border = thin_border
+        ws.merge_cells(start_row=row_now, start_column=2, end_row=row_now + headcount - 1, end_column=2)
+        # 填入 家庭总人口数
+        ws.cell(row_now, 3, headcount).border = thin_border
+        ws.merge_cells(start_row=row_now, start_column=3, end_row=row_now + headcount - 1, end_column=3)
+
+        for j in range(headcount):
+            # 填入 户内成员姓名
+            ws.cell(row_now + j, 4, info[i][5][j][0]).border = thin_border
+            # 填入 与户主关系
+            ws.cell(row_now + j, 5, info[i][5][j][1]).border = thin_border
+            # 填入 性别
+            ws.cell(row_now + j, 6, info[i][5][j][2]).border = thin_border
+            # 填入 身份证号
+            ws.cell(row_now + j, 7, info[i][5][j][3]).border = thin_border
+            # 填入 证件类型
+            ws.cell(row_now + j, 8, '户口本').border = thin_border
+            # 填入 备注
+            ws.cell(row_now + j, 11, info[i][5][j][4]).border = thin_border
+        # 填入 家庭住址
+        ws.cell(row_now, 9, info[i][3]).border = thin_border
+        ws.merge_cells(start_row=row_now, start_column=9, end_row=row_now + headcount - 1, end_column=9)
+        # 填入 联系电话
+        ws.cell(row_now, 10, info[i][2]).border = thin_border
+        ws.merge_cells(start_row=row_now, start_column=10, end_row=row_now + headcount - 1, end_column=10)
+
+        total_menbers += headcount
+        row_now += headcount  # 根据人数进行移动
+
+    ws.cell(row_now, 1, '合计').border = thin_border
+    ws.cell(row_now, 2, len(info)).border = thin_border
+    ws.cell(row_now, 3, total_menbers).border = thin_border
+
+    for row in ws.iter_rows(min_row=4, min_col=1, max_row=row_now, max_col=11):
+        for cell in row:
+            cell.alignment = align
+
+    wb.save(out_filename)  # 保存
+    return
+
+
+def write_short_openpyxl(in_f, out, info):
+    wb = load_workbook(in_f)  # 生成一个已存在的wookbook对象
+    ws = wb.active  # 激活sheet
+
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+
+    align = Alignment(horizontal='center', vertical='center')
+
+    row_now = 6
+    total_menbers = 0
+
+    for i in range(len(infoShort)):
+        # 获取该户总人数，确定需合并的单元格行数
+        headcount = int(infoShort[i][2])
+
+        # 填入 序号
+        ws.cell(row_now, 1, info[i][0])
+        ws.merge_cells(start_row=row_now, start_column=1, end_row=row_now + headcount - 1, end_column=1)
+        # 填入 户主
+        ws.cell(row_now, 2, info[i][1])
+        ws.merge_cells(start_row=row_now, start_column=2, end_row=row_now + headcount - 1, end_column=2)
+        # 每户股数合计
+        ws.cell(row_now, 6, 10 * headcount)
+        ws.merge_cells(start_row=row_now, start_column=6, end_row=row_now + headcount - 1, end_column=6)
+        # 地址
+        ws.cell(row_now, 8, infoShort[i][4])
+        ws.merge_cells(start_row=row_now, start_column=8, end_row=row_now + headcount - 1, end_column=8)
+
+        for j in range(headcount):
+            ws.cell(row_now + j, 3, infoShort[i][3][j][0])  # 姓名
+            ws.cell(row_now + j, 4, infoShort[i][3][j][1])  # 与户主关系
+            ws.cell(row_now + j, 5, 10)  # 股数
+            ws.cell(row_now + j, 7, '成员股')  # 股权类型
+            ws.cell(row_now + j, 9, '')  # 备注 暂空
+        total_menbers += headcount
+        row_now += headcount  # 根据人数进行移动
+    ws.cell(row_now, 1, '合计')
+    ws.cell(row_now, 2, len(info))
+    ws.cell(row_now, 3, total_menbers)
+
+    ws.cell(row_now + 1, 1, '合计')
+    ws.merge_cells(start_row=row_now + 1, start_column=1, end_row=row_now + 1, end_column=5)
+    ws.cell(row_now + 1, 6, total_menbers * 10)
+
+    for row in ws.iter_rows(min_row=6, min_col=1, max_row=row_now+1, max_col=9):
+        for cell in row:
+            cell.border = thin_border
+            cell.alignment = align
+
+    wb.save(out)  # 保存
+    return
 
 
 if __name__ == '__main__':
