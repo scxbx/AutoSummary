@@ -22,7 +22,6 @@ summary_filename = os.getcwd() + r"\模板\确认汇总表.xlsx"
 short_filename = os.getcwd() + r"\模板\集体资产股权确认登记表.xlsx"
 
 
-
 # 读取"确认表"，创建列表
 # ·字典内分别设置 编号、联系电话、家庭住址、家庭成员
 # 数据核对：检测sheet名、表格户主名与成员信息中的户主名是否一致，若不一致则报错
@@ -482,8 +481,8 @@ def GUI():
     def increaseSheetIdGUI():
         ori_filename = filedialog.askopenfilename(
             filetypes=[("Excel", ".xls"), ("Excel", ".xlsx")])
-        increaseSheetId(ori_filename)
-        text1.insert("end", "\n已填入序号。请注意调整右边边框并去除眉头和眉脚！\n")
+        new_filename = increaseSheetIdOpenpyxl(ori_filename)
+        text1.insert("end", "\n已填入序号。新文件名为：" + new_filename + "\n")
 
     def shortInDir():
         in_filename = short_filename
@@ -515,7 +514,8 @@ def GUI():
             if not os.path.isdir(file):  # 判断是否是文件夹，不是文件夹才打开
                 global infoShort, errors_short
                 print(file)
-                info, errors, familyNumber, population = read_data(directory_input + "/" + file, isCheckMasterAndSheetname)
+                info, errors, familyNumber, population = read_data(directory_input + "/" + file,
+                                                                   isCheckMasterAndSheetname)
                 text1.insert('end', "\n\n确认表为：" + file)
                 strlist = file.split('.')
                 fileName_output = directory_input + '/../打印/' + strlist[0] + '_汇总表.xlsx'
@@ -596,8 +596,6 @@ def GUI():
     shortInDirButton = tk.Button(rightFrame, text='批量生成折股量化表', command=shortInDir)
     shortInDirButton.pack()
     tk.mainloop()
-
-
 
 
 # ------------------------------Order Begin-------------------------------------------------------------
@@ -1677,13 +1675,83 @@ def write_short_openpyxl(in_f, out, info):
     ws.merge_cells(start_row=row_now + 1, start_column=1, end_row=row_now + 1, end_column=5)
     ws.cell(row_now + 1, 6, total_menbers * 10)
 
-    for row in ws.iter_rows(min_row=6, min_col=1, max_row=row_now+1, max_col=9):
+    for row in ws.iter_rows(min_row=6, min_col=1, max_row=row_now + 1, max_col=9):
         for cell in row:
             cell.border = thin_border
             cell.alignment = align
 
     wb.save(out)  # 保存
     return
+
+
+def xls_to_xlsx(folder_path, file_name):
+    """
+    excel  .xls 后缀 改成 .xlsx 后缀
+    folder_path 文件夹路径
+    file_name 文件名字 带后缀 比如 aa.xls
+    """
+    folder_path = folder_path.replace('/', '\\')
+    file_name = file_name.replace('/', '\\')
+    name, suffix = file_name.split('.')
+    excel_file_path = os.path.join(folder_path, file_name)
+    import win32com.client
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application')  # 要看MIME手册
+    wb = excel.Workbooks.Open(excel_file_path)
+    suffix = f".{suffix}x"
+    new_file_name = f"{name}{suffix}"
+    new_excel_file_path = os.sep.join([folder_path, new_file_name])
+    # tset
+    print("new_excel_file_path: " + new_excel_file_path)
+    wb.SaveAs(new_excel_file_path, FileFormat=51)
+    wb.Close()
+    excel.Application.Quit()
+    return new_excel_file_path
+
+
+def increaseSheetIdOpenpyxl(filename):
+    print("filename: " + filename)
+    folder_path, file_name = os.path.split(filename)
+    # folder_path = r"C:\Users\sc\Desktop\test_openpyxl"
+    # file_name = 'sample.xlsx'
+    old_suffix = file_name.split('.')[-1]
+    if old_suffix == 'xls':
+        print("transform .xls to .xlsx")
+        excel_path = xls_to_xlsx(folder_path, file_name)
+    elif old_suffix == 'xlsx':
+        print("no need to transform file type")
+        excel_path = os.sep.join([folder_path, file_name])
+        # print(excel_path)
+    else:
+        print("wrong file type: " + old_suffix)
+    '''
+    wb1 = load_workbook(filename=excel_path )
+    sheets = wb1.sheetnames  # 获取所有的表格
+    print(sheets)
+    sheets_first = sheets[0]  # 获取第一个表
+    ws1 = wb1[sheets_first]
+    print(ws1['A1'].value)
+    '''
+    # assert money == ws1['F2'].value, "下载文件内容显示不正确"
+    # os.remove(excel_path )
+
+    wb1 = load_workbook(filename=excel_path)
+    # sheets = wb1.sheetnames  # 获取所有的表格
+
+    count = 0
+    for sheet in wb1:
+        count += 1
+        sheet['K2'] = count
+
+    out_name = file_name.split('.')[0] + '_new'
+    suffix = '.xlsx'
+    out_file_name = f"{out_name}{suffix}"
+
+    wb1.save(os.path.join(folder_path, out_file_name))
+
+    if old_suffix == 'xls':
+        os.remove(excel_path)
+
+    return out_file_name
 
 
 if __name__ == '__main__':
