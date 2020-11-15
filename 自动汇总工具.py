@@ -10,6 +10,7 @@ import xlwt
 from xlutils.copy import copy
 from collections import Counter
 import os
+import win32com.client
 from openpyxl import load_workbook
 from openpyxl.styles import Side, Border, Alignment
 
@@ -1694,7 +1695,7 @@ def xls_to_xlsx(folder_path, file_name):
     file_name = file_name.replace('/', '\\')
     name, suffix = file_name.split('.')
     excel_file_path = os.path.join(folder_path, file_name)
-    import win32com.client
+
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application')  # 要看MIME手册
     wb = excel.Workbooks.Open(excel_file_path)
     suffix = f".{suffix}x"
@@ -1723,6 +1724,7 @@ def increaseSheetIdOpenpyxl(filename):
         # print(excel_path)
     else:
         print("wrong file type: " + old_suffix)
+        return
     '''
     wb1 = load_workbook(filename=excel_path )
     sheets = wb1.sheetnames  # 获取所有的表格
