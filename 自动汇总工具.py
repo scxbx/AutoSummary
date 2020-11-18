@@ -21,7 +21,8 @@ errors = []
 
 summary_filename = os.getcwd() + r"\模板\确认汇总表.xlsx"
 short_filename = os.getcwd() + r"\模板\集体资产股权确认登记表.xlsx"
-
+short_business_filename = os.getcwd() + r"\模板\集体资产股权确认登记表-有经营性资产.xlsx"
+standing_book_filename = os.getcwd() + r"\模板\台账.xlsx"
 
 # 读取"确认表"，创建列表
 # ·字典内分别设置 编号、联系电话、家庭住址、家庭成员
@@ -417,6 +418,22 @@ def GUI():
         write_short_openpyxl(in_filename, fileName_output, infoShort)
         text1.insert("end", "\n\n填写完成，快去检查一下。\n折股量化表：" + fileName_output)
 
+    def writeShortBusinessGUI():
+        in_filename = short_business_filename
+        strlist = fileName_intput_short.split('.')
+        fileName_output = strlist[0] + '_经营性股权.xlsx'
+        write_short_business_openpyxl(in_filename, fileName_output, infoShort)
+        text1.insert("end", "\n\n填写完成，快去检查一下。\n经营性折股量化表：" + fileName_output)
+
+
+    def writeStandingBookGUI():
+        in_filename = standing_book_filename
+        strlist = fileName_intput_short.split('.')
+        fileName_output = strlist[0] + '_台账.xlsx'
+        write_standing_book_openpyxl(in_filename, fileName_output, infoShort)
+        text1.insert("end", "\n\n填写完成，快去检查一下。\n台账：" + fileName_output)
+
+
     def readReprensentativeGUI():
         global fileName_intput_short
         fileName_intput_short = filedialog.askopenfilename(
@@ -546,8 +563,10 @@ def GUI():
     '''
 
     tk.Label(leftFrame, text="----------生成折股量化表----------").pack()
-    tk.Button(leftFrame, width=15, height=1, text="选择汇总表", command=readShortGUI).pack()
-    tk.Button(leftFrame, width=15, height=1, text="获取折股量化表", command=writeShortGUI).pack()
+    tk.Button(leftFrame, width=18, height=1, text="选择汇总表", command=readShortGUI).pack()
+    tk.Button(leftFrame, width=18, height=1, text="获取折股量化表", command=writeShortGUI).pack()
+    tk.Button(leftFrame, width=18, height=1, text="获取经营性折股量化表", command=writeShortBusinessGUI).pack()
+    tk.Button(leftFrame, width=18, height=1, text="获取台账", command=writeStandingBookGUI).pack()
 
     tk.Label(leftFrame, text="---------生成村民代表名单---------").pack()
     # Fang Version: all pages are of 25 people
@@ -1677,6 +1696,124 @@ def write_short_openpyxl(in_f, out, info):
     ws.cell(row_now + 1, 6, total_menbers * 10)
 
     for row in ws.iter_rows(min_row=6, min_col=1, max_row=row_now + 1, max_col=9):
+        for cell in row:
+            cell.border = thin_border
+            cell.alignment = align
+
+    wb.save(out)  # 保存
+    return
+
+
+def write_short_business_openpyxl(in_f, out, info):
+    wb = load_workbook(in_f)  # 生成一个已存在的wookbook对象
+    ws = wb.active  # 激活sheet
+
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+
+    align = Alignment(horizontal='center', vertical='center')
+
+    row_now = 7
+    total_members = 0
+
+    for i in range(len(infoShort)):
+        # 获取该户总人数，确定需合并的单元格行数
+        headcount = int(infoShort[i][2])
+
+        # 填入 序号
+        ws.cell(row_now, 1, info[i][0])
+        ws.merge_cells(start_row=row_now, start_column=1, end_row=row_now + headcount - 1, end_column=1)
+        # 填入 户主
+        ws.cell(row_now, 2, info[i][1])
+        ws.merge_cells(start_row=row_now, start_column=2, end_row=row_now + headcount - 1, end_column=2)
+        # 每户股数合计
+        ws.cell(row_now, 7, 10 * headcount)
+        ws.merge_cells(start_row=row_now, start_column=7, end_row=row_now + headcount - 1, end_column=7)
+        # 每户股金合计 不填
+        ws.merge_cells(start_row=row_now, start_column=8, end_row=row_now + headcount - 1, end_column=8)
+        # 地址
+        ws.cell(row_now, 10, infoShort[i][4])
+        ws.merge_cells(start_row=row_now, start_column=10, end_row=row_now + headcount - 1, end_column=10)
+
+        for j in range(headcount):
+            ws.cell(row_now + j, 3, infoShort[i][3][j][0])  # 姓名
+            ws.cell(row_now + j, 4, infoShort[i][3][j][1])  # 与户主关系
+            ws.cell(row_now + j, 5, 10)  # 股数
+            ws.cell(row_now + j, 9, '成员股')  # 股权类型
+            ws.cell(row_now + j, 11, '')  # 备注 暂空
+        total_members += headcount
+        row_now += headcount  # 根据人数进行移动
+
+    ws.cell(row_now, 1, '合计')
+    ws.merge_cells(start_row=row_now, start_column=1, end_row=row_now, end_column=5)
+    ws.cell(row_now, 7, total_members * 10)
+
+    for row in ws.iter_rows(min_row=7, min_col=1, max_row=row_now, max_col=11):
+        for cell in row:
+            cell.border = thin_border
+            cell.alignment = align
+
+    wb.save(out)  # 保存
+    return
+
+
+def write_standing_book_openpyxl(in_f, out, info):
+    wb = load_workbook(in_f)  # 生成一个已存在的wookbook对象
+    ws = wb.active  # 激活sheet
+
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+
+    align = Alignment(horizontal='center', vertical='center')
+
+    row_now = 5
+    total_members = 0
+
+    for i in range(len(infoShort)):
+        # 获取该户总人数，确定需合并的单元格行数
+        headcount = int(infoShort[i][2])
+
+        # 填入 序号
+        id_index = 1
+        ws.cell(row_now, id_index, info[i][0])
+        ws.merge_cells(start_row=row_now, start_column=id_index, end_row=row_now+headcount-1, end_column=id_index)
+        # 股权证编号 不填
+        certificate_index = 2
+        ws.merge_cells(start_row=row_now, start_column=certificate_index, end_row=row_now+headcount-1, end_column=certificate_index)
+        # 成员代表
+        master_index = 3
+        ws.cell(row_now, master_index, info[i][1])
+        ws.merge_cells(start_row=row_now, start_column=master_index, end_row=row_now + headcount - 1,
+                       end_column=master_index)
+
+        for j in range(headcount):
+            ws.cell(row_now + j, 4, infoShort[i][3][j][0])  # 4. 姓名
+            ws.cell(row_now + j, 5, infoShort[i][3][j][1])  # 5. 与户主关系
+            ws.cell(row_now + j, 6, 10)                     # 6. 股数
+            ws.cell(row_now + j, 9, '成员股')                # 9. 股权类型
+        total_members += headcount
+        row_now += headcount  # 根据人数进行移动
+
+    no_value_str = '―'
+    ws.cell(row_now, 1, '合计')
+    ws.merge_cells(start_row=row_now, start_column=1, end_row=row_now, end_column=2)
+    ws.cell(row_now, 3, len(info))
+    ws.cell(row_now, 4, total_members)
+    ws.cell(row_now, 6, total_members * 10)
+    no_value_list = [5, 8, 9, 12, 13, 14, 15]
+    for index in no_value_list:
+        ws.cell(row_now, index, no_value_str)
+
+    begin_fill_row = 5
+    end_fill_row = row_now
+    begin_fill_col = 1
+    end_fill_col = 16
+
+    for row in ws.iter_rows(min_row=begin_fill_row, min_col=begin_fill_col, max_row=end_fill_row, max_col=end_fill_col):
         for cell in row:
             cell.border = thin_border
             cell.alignment = align
