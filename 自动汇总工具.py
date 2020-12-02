@@ -118,6 +118,7 @@ def read_data(filename, isCheckMasterAndSheetname):
         # print("headcount")
         # print(headcount)
         hasMaster = False
+        id_number = ''
         for i in range(int(headcount)):
             row = 9 + int(i)
             try:
