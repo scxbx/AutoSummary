@@ -120,9 +120,11 @@ def read_data(filename, isCheckMasterAndSheetname):
         hasMaster = False
         for i in range(int(headcount)):
             row = 9 + int(i)
-
-            id_number = sheet.cell(row, 4).value.strip()
-            allId_number.append(id_number)
+            try:
+                id_number = sheet.cell(row, 4).value.strip()
+            except:
+                print(sheet.cell(row, 4).value)
+            allId_number.append(sheet.cell(row, 4).value)
             gender = ''
 
             if id_number == '':
