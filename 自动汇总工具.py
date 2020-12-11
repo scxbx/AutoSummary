@@ -1522,8 +1522,11 @@ def checkIDNumber(num_str):
             if num != right_code:
                 print(u"身份证号: %s 校验不通过, 正确尾号应该为：%s" % (num_str, right_code))
                 return u"%s 校验不通过" % num_str
+        try:
+            check_num += str_to_int.get(num) * (2 ** (17 - index) % 11)
+        except :
+            print(num)
 
-        check_num += str_to_int.get(num) * (2 ** (17 - index) % 11)
     return 'pass'
 
 
