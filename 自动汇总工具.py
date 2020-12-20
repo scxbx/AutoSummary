@@ -18,11 +18,14 @@ fileName_input = ''
 directory_input = ''
 info = []
 errors = []
+capital = 0.0
+total_members = 0
 
 summary_filename = os.getcwd() + r"\模板\确认汇总表.xlsx"
 short_filename = os.getcwd() + r"\模板\集体资产股权确认登记表.xlsx"
 short_business_filename = os.getcwd() + r"\模板\集体资产股权确认登记表-有经营性资产.xlsx"
 standing_book_filename = os.getcwd() + r"\模板\台账.xlsx"
+
 
 # 读取"确认表"，创建列表
 # ·字典内分别设置 编号、联系电话、家庭住址、家庭成员
@@ -360,6 +363,9 @@ def GUI():
     scroll.config(command=text1.yview)  # 将文本框关联到滚动条上，滚动条滑动，文本框跟随滑动
     text1.config(yscrollcommand=scroll.set)  # 将滚动条关联到文本框
 
+    input_capital = tk.Entry(leftFrame, show=None)
+
+    # 设置输入框，对象是在windows上，show参数--->显示文本框输入时显示方式None:文字不加密，show="*"加密
     def open_input():
         # show whether check sheetname or not
         checkSheetString = "\n\n检查sheetname是否为户主名。" if isCheckMasterAndSheetname.get() == 1 else "\n\n不检查sheetname是否为户主名。"
@@ -410,8 +416,8 @@ def GUI():
         global fileName_intput_short
         fileName_intput_short = filedialog.askopenfilename(
             filetypes=[("Excel", ".xls"), ("Excel", ".xlsx"), ("python", ".py")])
-        global infoShort, errors_short
-        infoShort, errors_short = readShort(fileName_intput_short)
+        global infoShort, errors_short, total_members
+        infoShort, errors_short, total_members = readShort(fileName_intput_short)
         text1.insert('end', "\n\n汇总表为：" + fileName_intput_short)
 
     def writeShortGUI():
@@ -425,9 +431,8 @@ def GUI():
         in_filename = short_business_filename
         strlist = fileName_intput_short.split('.')
         fileName_output = strlist[0] + '_经营性股权.xlsx'
-        write_short_business_openpyxl(in_filename, fileName_output, infoShort)
+        write_short_business_openpyxl(in_filename, fileName_output, infoShort, total_members)
         text1.insert("end", "\n\n填写完成，快去检查一下。\n经营性折股量化表：" + fileName_output)
-
 
     def writeStandingBookGUI():
         in_filename = standing_book_filename
@@ -435,7 +440,6 @@ def GUI():
         fileName_output = strlist[0] + '_台账.xlsx'
         write_standing_book_openpyxl(in_filename, fileName_output, infoShort)
         text1.insert("end", "\n\n填写完成，快去检查一下。\n台账：" + fileName_output)
-
 
     def readReprensentativeGUI():
         global fileName_intput_short
@@ -515,9 +519,9 @@ def GUI():
         s = []
         for file in files:  # 遍历文件夹
             if not os.path.isdir(file):  # 判断是否是文件夹，不是文件夹才打开
-                global infoShort, errors_short
+                global infoShort, errors_short, total_members
                 print(file)
-                infoShort, errors_short = readShort(directory_input + "/" + file)
+                infoShort, errors_short, total_members = readShort(directory_input + "/" + file)
                 text1.insert('end', "\n\n汇总表为：" + file)
                 strlist = file.split('.')
                 fileName_output = directory_input + '/' + strlist[0] + '_股权.xlsx'
@@ -548,6 +552,12 @@ def GUI():
         myFont.configure(size=value.get())
         # print(myFont)
 
+    def set_capital():
+        var = input_capital.get()  # 获取输入的信息
+        text1.insert("insert", var)  # 参数1：插入方式，参数2：插入的数据
+        global capital
+        capital = var
+
     isCheckMasterAndSheetname = tk.IntVar()
     isCheckMasterAndSheetname.set(1)
     C1 = tk.Checkbutton(rightFrame, text="检查sheet名是否为户主", variable=isCheckMasterAndSheetname,
@@ -568,6 +578,8 @@ def GUI():
     tk.Label(leftFrame, text="----------生成折股量化表----------").pack()
     tk.Button(leftFrame, width=18, height=1, text="选择汇总表", command=readShortGUI).pack()
     tk.Button(leftFrame, width=18, height=1, text="获取折股量化表", command=writeShortGUI).pack()
+    input_capital.pack()
+    tk.Button(leftFrame, width=15, height=1, text="insert point", command=set_capital).pack()
     tk.Button(leftFrame, width=18, height=1, text="获取经营性折股量化表", command=writeShortBusinessGUI).pack()
     tk.Button(leftFrame, width=18, height=1, text="获取台账", command=writeStandingBookGUI).pack()
 
@@ -818,6 +830,8 @@ def readShort(filename):
     nrows = sheet.nrows  # 获取总行数
     # 577 nrow: ", nrows)
     row_now = 3  # 标记当前行
+
+    total_memebers = 0
     # ignore the last row of the sheet since the row is for summary
     while (row_now < nrows):
 
@@ -871,8 +885,10 @@ def readShort(filename):
                 # print("test 604 member_relation: ", sheet.cell(row_now + hc, 4).value)
             infoShort.append([id, master, headcount, members, address])
         row_now += 1
+        total_memebers += 1
     # print(infoShort)
-    return infoShort, errors_short
+    print(total_memebers)
+    return infoShort, errors_short, total_memebers
 
 
 def writeShort(filename, infoShort):
@@ -1524,7 +1540,7 @@ def checkIDNumber(num_str):
                 return u"%s 校验不通过" % num_str
         try:
             check_num += str_to_int.get(num) * (2 ** (17 - index) % 11)
-        except :
+        except:
             print(num)
 
     return 'pass'
@@ -1666,6 +1682,7 @@ def write_short_openpyxl(in_f, out, info):
     align = Alignment(horizontal='center', vertical='center')
 
     row_now = 6
+
     total_menbers = 0
 
     for i in range(len(infoShort)):
@@ -1710,7 +1727,7 @@ def write_short_openpyxl(in_f, out, info):
     return
 
 
-def write_short_business_openpyxl(in_f, out, info):
+def write_short_business_openpyxl(in_f, out, info, pre_total_members):
     wb = load_workbook(in_f)  # 生成一个已存在的wookbook对象
     ws = wb.active  # 激活sheet
 
@@ -1721,9 +1738,13 @@ def write_short_business_openpyxl(in_f, out, info):
 
     align = Alignment(horizontal='center', vertical='center')
 
-    row_now = 7
-    total_members = 0
+    row_now = 6
 
+    global capital
+    print(pre_total_members)
+    capital_per_person = float(capital) / pre_total_members
+
+    total_members = 0
     for i in range(len(infoShort)):
         # 获取该户总人数，确定需合并的单元格行数
         headcount = int(infoShort[i][2])
@@ -1737,7 +1758,8 @@ def write_short_business_openpyxl(in_f, out, info):
         # 每户股数合计
         ws.cell(row_now, 7, 10 * headcount)
         ws.merge_cells(start_row=row_now, start_column=7, end_row=row_now + headcount - 1, end_column=7)
-        # 每户股金合计 不填
+        # 每户股金合计
+        ws.cell(row_now, 8, capital_per_person * headcount)
         ws.merge_cells(start_row=row_now, start_column=8, end_row=row_now + headcount - 1, end_column=8)
         # 地址
         ws.cell(row_now, 10, infoShort[i][4])
@@ -1747,16 +1769,20 @@ def write_short_business_openpyxl(in_f, out, info):
             ws.cell(row_now + j, 3, infoShort[i][3][j][0])  # 姓名
             ws.cell(row_now + j, 4, infoShort[i][3][j][1])  # 与户主关系
             ws.cell(row_now + j, 5, 10)  # 股数
+            ws.cell(row_now + j, 6, capital_per_person)  # 股金
             ws.cell(row_now + j, 9, '成员股')  # 股权类型
             ws.cell(row_now + j, 11, '')  # 备注 暂空
         total_members += headcount
         row_now += headcount  # 根据人数进行移动
 
+    # 最后一行 合计
     ws.cell(row_now, 1, '合计')
     ws.merge_cells(start_row=row_now, start_column=1, end_row=row_now, end_column=5)
+    ws.cell(row_now, 6, capital)
     ws.cell(row_now, 7, total_members * 10)
+    ws.cell(row_now, 8, capital)
 
-    for row in ws.iter_rows(min_row=7, min_col=1, max_row=row_now, max_col=11):
+    for row in ws.iter_rows(min_row=6, min_col=1, max_row=row_now, max_col=11):
         for cell in row:
             cell.border = thin_border
             cell.alignment = align
@@ -1786,10 +1812,11 @@ def write_standing_book_openpyxl(in_f, out, info):
         # 填入 序号
         id_index = 1
         ws.cell(row_now, id_index, info[i][0])
-        ws.merge_cells(start_row=row_now, start_column=id_index, end_row=row_now+headcount-1, end_column=id_index)
+        ws.merge_cells(start_row=row_now, start_column=id_index, end_row=row_now + headcount - 1, end_column=id_index)
         # 股权证编号 不填
         certificate_index = 2
-        ws.merge_cells(start_row=row_now, start_column=certificate_index, end_row=row_now+headcount-1, end_column=certificate_index)
+        ws.merge_cells(start_row=row_now, start_column=certificate_index, end_row=row_now + headcount - 1,
+                       end_column=certificate_index)
         # 成员代表
         master_index = 3
         ws.cell(row_now, master_index, info[i][1])
@@ -1799,8 +1826,8 @@ def write_standing_book_openpyxl(in_f, out, info):
         for j in range(headcount):
             ws.cell(row_now + j, 4, infoShort[i][3][j][0])  # 4. 姓名
             ws.cell(row_now + j, 5, infoShort[i][3][j][1])  # 5. 与户主关系
-            ws.cell(row_now + j, 6, 10)                     # 6. 股数
-            ws.cell(row_now + j, 9, '成员股')                # 9. 股权类型
+            ws.cell(row_now + j, 6, 10)  # 6. 股数
+            ws.cell(row_now + j, 9, '成员股')  # 9. 股权类型
         total_members += headcount
         row_now += headcount  # 根据人数进行移动
 
