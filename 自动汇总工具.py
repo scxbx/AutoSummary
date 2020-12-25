@@ -438,7 +438,7 @@ def GUI():
         in_filename = standing_book_filename
         strlist = fileName_intput_short.split('.')
         fileName_output = strlist[0] + '_台账.xlsx'
-        write_standing_book_openpyxl(in_filename, fileName_output, infoShort)
+        write_standing_book_openpyxl(in_filename, fileName_output, infoShort, total_members)
         text1.insert("end", "\n\n填写完成，快去检查一下。\n台账：" + fileName_output)
 
     def readReprensentativeGUI():
@@ -868,6 +868,7 @@ def readShort(filename):
                 member_name = ''
                 member_relation = ''
                 member_note = ''
+                resident_id = ''
                 try:
                     member_name = sheet.cell(row_now + hc, 3).value
                     # print(member_name)
@@ -876,12 +877,13 @@ def readShort(filename):
                     # member_gender = sheet.cell(row_now + hc, 5).value
                     # member_id_number = sheet.cell(row_now + hc, 6).value
                     member_note = sheet.cell(row_now + hc, 10).value
+                    resident_id = sheet.cell(row_now + hc, 6).value
                     # print(member_note)
 
                 except IndexError:
                     print("error row_now + hc: ", row_now + hc)
 
-                members.append([member_name, member_relation, member_note])
+                members.append([member_name, member_relation, member_note, resident_id])
                 # print("test 604 member_relation: ", sheet.cell(row_now + hc, 4).value)
             infoShort.append([id, master, headcount, members, address])
         row_now += 1
@@ -1791,7 +1793,7 @@ def write_short_business_openpyxl(in_f, out, info, pre_total_members):
     return
 
 
-def write_standing_book_openpyxl(in_f, out, info):
+def write_standing_book_openpyxl(in_f, out, info, pre_total_members):
     wb = load_workbook(in_f)  # 生成一个已存在的wookbook对象
     ws = wb.active  # 激活sheet
 
@@ -1802,8 +1804,11 @@ def write_standing_book_openpyxl(in_f, out, info):
 
     align = Alignment(horizontal='center', vertical='center')
 
-    row_now = 5
+    row_now = 6
     total_members = 0
+
+    global capital
+    capital_per_person = float(capital) / pre_total_members
 
     for i in range(len(infoShort)):
         # 获取该户总人数，确定需合并的单元格行数
@@ -1825,26 +1830,29 @@ def write_standing_book_openpyxl(in_f, out, info):
 
         for j in range(headcount):
             ws.cell(row_now + j, 4, infoShort[i][3][j][0])  # 4. 姓名
-            ws.cell(row_now + j, 5, infoShort[i][3][j][1])  # 5. 与户主关系
-            ws.cell(row_now + j, 6, 10)  # 6. 股数
-            ws.cell(row_now + j, 9, '成员股')  # 9. 股权类型
+            ws.cell(row_now + j, 5, infoShort[i][3][j][3])  # 5. 身份证号码
+            ws.cell(row_now + j, 6, infoShort[i][3][j][1])  # 6. 与户主关系
+            ws.cell(row_now + j, 7, 10)  # 7. 股数
+            ws.cell(row_now + j, 8, capital_per_person)  # 8. 股数
+            ws.cell(row_now + j, 10, '成员股')  # 10. 股权类型
         total_members += headcount
         row_now += headcount  # 根据人数进行移动
 
     no_value_str = '―'
     ws.cell(row_now, 1, '合计')
     ws.merge_cells(start_row=row_now, start_column=1, end_row=row_now, end_column=2)
-    ws.cell(row_now, 3, len(info))
-    ws.cell(row_now, 4, total_members)
-    ws.cell(row_now, 6, total_members * 10)
-    no_value_list = [5, 8, 9, 12, 13, 14, 15]
+    # ws.cell(row_now, 3, len(info))
+    # ws.cell(row_now, 4, total_members)
+    ws.cell(row_now, 7, total_members * 10)
+    ws.cell(row_now, 8, capital)
+    no_value_list = [6, 9, 10, 13, 14, 15, 16]
     for index in no_value_list:
         ws.cell(row_now, index, no_value_str)
 
     begin_fill_row = 5
     end_fill_row = row_now
     begin_fill_col = 1
-    end_fill_col = 16
+    end_fill_col = 17
 
     for row in ws.iter_rows(min_row=begin_fill_row, min_col=begin_fill_col, max_row=end_fill_row, max_col=end_fill_col):
         for cell in row:
