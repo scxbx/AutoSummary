@@ -1629,6 +1629,7 @@ def write_data_openpyxl(in_filename, out_filename, info):
 
         # 填入 序号
         ws.cell(row_now, 1, info[i][0]).border = thin_border
+        print(info[i][0])
         ws.merge_cells(start_row=row_now, start_column=1, end_row=row_now + headcount - 1, end_column=1)
         # 填入 户主
         ws.cell(row_now, 2, info[i][1]).border = thin_border
